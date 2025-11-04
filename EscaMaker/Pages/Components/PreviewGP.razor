@@ -10,6 +10,7 @@
         <MudText Typo="Typo.subtitle1" Class="mb-4"><b>Nome</b>: @Nome</MudText>
         @if (DiasAndFuncao != null && DiasAndFuncao.Any()) @* Adicionado .Any() para melhor controle *@
         {
+
             <MudTable Items="@DiasAndFuncao" Dense="true" Hover="true" Bordered="false" Striped="true"> @* MudTable mais estilizada *@
                 <HeaderContent>
                     <MudTh Style="width: 50px">Dia</MudTh>
