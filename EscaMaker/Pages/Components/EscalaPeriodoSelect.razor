@@ -1,0 +1,74 @@
+﻿<MudDialog>
+    <TitleContent>
+        Seleção de período
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudCheckBox T="bool" @bind-Value="IsSpan" Label="Por Intervalo" />
+            @if (IsSpan)
+            {
+                <MudNumericField T="int" @bind-Value="DiaInicial" Label="Dia inicial" Variant="Variant.Outlined" />
+
+                <MudNumericField T="int" @bind-Value="DiaFinal" Label="Dia final" Variant="Variant.Outlined" />
+
+            }
+            else
+            {
+                <MudNumericField T="int" @bind-Value="Dia" Label="Dia inicial" Variant="Variant.Outlined" />
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">OK</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+    [Inject]
+    ISnackbar Snackbar { get; set; }
+    [Parameter]
+    public int Mes { get; set; }
+    [Parameter]
+
+    public int Ano { get; set; }
+
+    public bool IsSpan { get; set; } = false;
+    public int DiaInicial { get; set; } = 1;
+    public int DiaFinal { get; set; } = 1;
+    int Dia { get; set; } = 1;
+    private void Submit()
+    {
+        var totalDiasMes = DateTime.DaysInMonth(Ano, Mes);
+        if (IsSpan)
+        {
+            if (DiaInicial > 0 && DiaFinal > 0 && DiaInicial <= DiaFinal && DiaInicial <= totalDiasMes
+                && DiaFinal <= totalDiasMes)
+            {
+                var spanData = (DiaInicial, DiaFinal);
+                MudDialog.Close(DialogResult.Ok(spanData));
+            }
+            else
+            {
+                Snackbar.Add("Os dias inicial e final devem ser válidos e o dia inicial não pode ser maior que o final.", Severity.Warning);
+            }
+            
+        } else
+        {
+            if (Dia > 0 && Dia <= totalDiasMes)
+            {
+                MudDialog.Close(DialogResult.Ok(Dia));
+
+            }
+            else
+            {
+                Snackbar.Add("O dia selecionado é inválido para o mês", Severity.Warning);
+            }
+
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

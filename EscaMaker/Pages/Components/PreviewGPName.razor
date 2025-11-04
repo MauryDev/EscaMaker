@@ -1,0 +1,56 @@
+﻿<MudCard Outlined="true" Elevation="4" Class="pa-3"> @* MudCard para um visual mais moderno e sombra *@
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">Buscar Escala por Pessoa</MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudAutocomplete Label="Nome"
+            T="string"
+            Placeholder="Nome do responsável"
+            @bind-Text="Name"
+            Variant="Variant.Outlined"
+            FullWidth="true"
+            Class="mb-4"
+            CoerceValue="true"
+            SearchFunc="SearchNames"/> @* Usando MudTextField para consistência e FullWidth *@
+
+    </MudCardContent>
+    <MudCardActions Class="d-flex justify-end"> @* Ação de botões alinhada à direita *@
+        <MudButton OnClick="OnClose" Variant="Variant.Text" Color="Color.Default">Fechar</MudButton> @* Estilo de botão "Fechar" mais discreto *@
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnOkButton">Ok</MudButton>
+    </MudCardActions>
+</MudCard>
+@code {
+    public string Name { get; set; } = string.Empty; @* Inicializado para evitar null reference *@
+
+
+    [Parameter]
+    public Action OnClose { get; set; } = () => { }; @* Inicializado para evitar null reference *@
+    [Parameter]
+    public Action<string> OnOk { get; set; } = (name) => { }; @* Inicializado para evitar null reference *@
+    [Parameter]
+    public List<string> Names { get; set; }
+
+    public async Task<IEnumerable<string>> SearchNames(string value,CancellationToken token)
+    {
+        // Simulação de busca - substituir pela lógica real de busca
+        return Names.Where(n => n.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+    public void OnOkButton()
+    {
+        OnOk(Name);
+    }
+    public static List<string> GetPersonNomesEscala(IEnumerable<View.EscalaTipoView> escalaTipoView)
+    {
+        var query =
+            from escala in escalaTipoView
+            from listaDeNomes in escala.Names
+            from nome in listaDeNomes
+            where !string.IsNullOrWhiteSpace(nome)
+            select nome;
+        var namesList = query
+            .Distinct()
+            .ToList();
+
+        return namesList;
+    }
+}

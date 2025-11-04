@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11111.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EscaMakerTestProj", "EscaMakerTestProj\EscaMakerTestProj.csproj", "{ED4AD40E-FAE2-4ABF-AB8E-C53EE2AC8CA0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EscaMaker", "EscaMaker\EscaMaker.csproj", "{660E14EB-E897-D966-AE86-15E0164B1ACE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ED4AD40E-FAE2-4ABF-AB8E-C53EE2AC8CA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED4AD40E-FAE2-4ABF-AB8E-C53EE2AC8CA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED4AD40E-FAE2-4ABF-AB8E-C53EE2AC8CA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED4AD40E-FAE2-4ABF-AB8E-C53EE2AC8CA0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{660E14EB-E897-D966-AE86-15E0164B1ACE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{660E14EB-E897-D966-AE86-15E0164B1ACE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{660E14EB-E897-D966-AE86-15E0164B1ACE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{660E14EB-E897-D966-AE86-15E0164B1ACE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {88F7AE1E-2F4C-4A87-994E-254EC9BB9889}
+	EndGlobalSection
+EndGlobal

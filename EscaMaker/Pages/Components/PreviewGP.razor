@@ -1,0 +1,74 @@
+﻿@using ClipLazor.Components;
+@inject IClipLazor Clipboard
+@inject ISnackbar _snackbar
+<MudCard Outlined="true" Elevation="4" Class="pa-3"> @* MudCard para um visual mais moderno e sombra *@
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">Escala Individual</MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.subtitle1">Mês de @MesNome</MudText>
+        <MudText Typo="Typo.subtitle1" Class="mb-4"><b>Nome</b>: @Nome</MudText>
+        @if (DiasAndFuncao != null && DiasAndFuncao.Any()) @* Adicionado .Any() para melhor controle *@
+        {
+            <MudTable Items="@DiasAndFuncao" Dense="true" Hover="true" Bordered="false" Striped="true"> @* MudTable mais estilizada *@
+                <HeaderContent>
+                    <MudTh Style="width: 50px">Dia</MudTh>
+                    <MudTh>Função</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Dia">@context.Dia.ToString("D02")</MudTd>
+                    <MudTd DataLabel="Função">@context.Name</MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+        else
+        {
+            <MudText Class="mt-4">Nenhuma escala encontrada para esta pessoa neste mês.</MudText> @* Mensagem para quando não há dados *@
+        }
+    </MudCardContent>
+    <MudCardActions Class="d-flex justify-end"> @* Ação de botões alinhada à direita *@
+        <MudButton Class="mr-2" OnClick="OnClose" Variant="Variant.Text" Color="Color.Default">Fechar</MudButton> @* Estilo de botão "Fechar" mais discreto *@
+        <MudButton OnClick="CopyToClipboard" Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.ContentCopy">Copiar</MudButton> @* Botão "Copiar" com ícone e cor secundária *@
+    </MudCardActions>
+</MudCard>
+
+@code {
+    [Parameter]
+    public string? Nome { get; set; }
+    [Parameter]
+    public int Mes { get; set; }
+    public string? MesNome => Utils.DateTimeUtil.GetMesNome(Mes);
+
+    [Parameter]
+    public IEnumerable<(string? Name, byte Dia, string PersonName)>? DiasAndFuncao { get; set; }
+    [Parameter]
+    public Action OnClose { get; set; } = () => { }; @* Inicializado para evitar null reference *@
+    async void CopyToClipboard()
+    {
+        System.Text.StringBuilder stringBuilder = new();
+        stringBuilder.AppendLine($"Escala de {MesNome}");
+        stringBuilder.AppendLine($"Nome: {Nome}");
+        stringBuilder.AppendLine("---");
+
+        if (DiasAndFuncao != null)
+        {
+            var groupBy = DiasAndFuncao.GroupBy((e) => e.Dia).OrderBy(g => g.Key);
+
+            foreach (var groupDia in groupBy)
+            {
+                var dia = groupDia.Key;
+                var diaSemana = Utils.DateTimeUtil.GetDiaSemanaNome(new DateTime(2025, Mes, dia).DayOfWeek);
+                stringBuilder.AppendLine($"{dia:D02}/{Mes:D02} - {diaSemana}");
+                foreach (var item in groupDia)
+                {
+                    stringBuilder.AppendLine($"- {item.Name}");
+                }
+                stringBuilder.AppendLine();
+
+            }
+        }
+        
+        await Clipboard.WriteTextAsync(stringBuilder.ToString().AsMemory());
+        _snackbar.Add("Conteúdo copiado para a área de transferência!", Severity.Success);
+    }
+}

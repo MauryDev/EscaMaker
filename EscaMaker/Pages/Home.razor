@@ -1,0 +1,21 @@
+﻿@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="d-flex align-center flex-column justify-center pt-10" Style="min-height: calc(100vh - 64px);">
+    <MudGrid Justify="Justify.Center" Spacing="4">
+        <MudItem xs="12" sm="10" md="8" Class="d-flex flex-column align-center text-center">
+            <MudPaper Outlined Class="pa-8 d-flex flex-column align-center" Elevation="10">
+                <MudImage Src="img/logo.png" Alt="Logo EscaMaker" Width="100" Height="100" Class="mb-4" /> @* Substitua 'img/file.png' pelo caminho do seu logo real *@
+                <MudText Typo="Typo.h2" GutterBottom="true" Class="font-weight-bold">Bem-vindo ao EscaMaker</MudText>
+                <MudText Typo="Typo.subtitle1" Class="mb-6">
+                    Uma ferramenta completa para a criação e gerenciamento de escalas de serviço de forma simples, rápida e eficiente.
+                    Organize as funções com facilidade.
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Href="/escala-create" Class="px-8 py-4">
+                    Criar Escala
+                </MudButton>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>

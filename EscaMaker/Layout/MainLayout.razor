@@ -1,0 +1,30 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider IsDarkMode="@isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1"> @* Adicionado Elevation para um pequeno sombreamento *@
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudText Typo="Typo.h6" Class="d-none d-sm-block">EscaMaker</MudText> @* Mostra o nome da app em telas maiores *@
+        <MudSpacer />
+        <MudIconButton Icon="@IconButtonChangeTheme" Color="Color.Inherit" OnClick="@((e) => isDarkMode = !isDarkMode)" />
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen">
+        <NavMenuMain/>
+    </MudDrawer>
+    <MudMainContent Class="px-4"> @* Alterado para espaçamento mais moderno *@
+        @Body
+    </MudMainContent>
+</MudLayout>
+@code {
+    bool _drawerOpen = false;
+    bool isDarkMode = false;
+    string IconButtonChangeTheme => isDarkMode ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode;
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}

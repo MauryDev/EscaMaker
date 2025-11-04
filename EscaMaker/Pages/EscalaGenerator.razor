@@ -1,0 +1,491 @@
+﻿@page "/escala-create"
+@inject Services.PDFEscala EscalaService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Criar Escala</PageTitle>
+<MudContainer MaxWidth="MaxWidth.Large" Class="my-4">
+    <MudPaper Square Outlined Class="pa-4">
+        <MudGrid Spacing="4">
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="Ano" Label="Ano" Variant="Variant.Outlined" Min="0" Max="10000" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect Label="Mês" @bind-Value="Mes" T="int" Variant="Variant.Outlined">
+                    @for (int i = 1; i <= 12; i++)
+                    {
+                        var cur = i;
+                        <MudSelectItem Value="cur">@Utils.DateTimeUtil.GetMesNome(cur)</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+
+        <MudGrid Spacing="4" Class="mt-4">
+            <!-- Gerar Escalas -->
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudButton FullWidth="true"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.PlayArrow"
+                           OnClick="Generate"
+                           Variant="Variant.Filled"
+                           Style="border-radius:24px;">Gerar Escala</MudButton>
+             </MudItem>
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudButton FullWidth="true"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.CalendarMonth" 
+                           OnClick="GenerateMesAtual"
+                           Variant="Variant.Filled"
+                           Style="border-radius:24px;">Gerar Mês Atual</MudButton>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudButton FullWidth="true"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.PictureAsPdf"
+                           Variant="Variant.Filled"
+                           Style="border-radius:24px;"
+                           Disabled="CanDisable()"
+                           OnClick="GeneratePDF">Download PDF</MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudButton FullWidth="true"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Visibility" 
+                           Variant="Variant.Filled"
+                           Style="border-radius:24px;"
+                           Disabled="CanDisable()"
+                           OnClick="GeneratePreview">Pré-visualizar</MudButton>
+            </MudItem>
+            
+            <!-- Gerenciar Local -->
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudButton FullWidth="true"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Save"
+                           Variant="Variant.Filled"
+                           Style="border-radius:24px;"
+                           Disabled="CanDisable()"
+                           OnClick="SaveLocal">Salvar Local</MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudButton FullWidth="true"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.FolderOpen"
+                           Variant="Variant.Filled"
+                           Style="border-radius:24px;"
+                           OnClick="LoadLocal">Carregar Local</MudButton>
+            </MudItem>
+
+            <!-- Consultar Escalas -->
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudButton FullWidth="true"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.PersonSearch" 
+                           Variant="Variant.Filled"
+                           Style="border-radius:24px;"
+                           Disabled="CanDisable()"
+                           OnClick="GenerateInfo">Escalas por Pessoa</MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudButton FullWidth="true"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.DateRange"
+                           Variant="Variant.Filled"
+                           Style="border-radius:24px;"
+                           Disabled="CanDisable()"
+                           OnClick="SelectPeriodo">Escalas por Período</MudButton>
+            </MudItem>
+
+             <!-- Importar/Exportar JSON -->
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudButton FullWidth="true"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Download"
+                           Variant="Variant.Filled"
+                           Style="border-radius:24px;"
+                           Disabled="CanDisable()"
+                           OnClick="ExportData">Exportar Escalas</MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudButton FullWidth="true"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Upload"
+                           Variant="Variant.Filled"
+                           Style="border-radius:24px;"
+                           OnClick="ImportData">Importar Escalas</MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    
+
+    @if (Sabados == null || Domingos == null || Quartas == null)
+    {
+        <MudText Class="mt-8 text-center" Typo="Typo.h6">Selecione um ano e mês para gerar a escala.</MudText>
+    }
+    else
+    {
+        var i = 0;
+        <MudText Class="mt-8 mb-4 text-center" Typo="Typo.h4" Align="Align.Center">Mês de @GetMesName()</MudText>
+        <MudDivider DividerType="DividerType.FullWidth"/>
+        <MudGrid Spacing="4">
+            @foreach (var info in escalasInfo)
+            {
+                int curi = i++;
+                
+                var curvalue = escalaTipos[curi];
+                <MudItem xs="12" sm="6" md="4">
+                    <EscaMaker.Pages.Components.EscalaTipo @key="curi"
+                        EscalaTipo_View="curvalue"  />
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+<MudOverlay @bind-Visible="_visible" AutoClose="true" Class="justify-center align-center">
+    <iframe style="width: 80vw; height: 80vh" src="@LastPreviewUrl"></iframe>
+</MudOverlay>
+
+<MudOverlay Visible="@(_modePersonInfo != 0)" DarkBackground >
+    <div style="width:60vw; min-width: 250px; height:70vh; min-height:400px; overflow-y: scroll;">
+        @if (_modePersonInfo == 2)
+        {
+            <EscaMaker.Pages.Components.PreviewGP Mes="@MesSelected"
+                                                  Nome="@Nome_PreviewGP"
+                                                  DiasAndFuncao="DiasAndFuncao"
+                                                  OnClose="OnClosePreview" />
+        }
+        else if (_modePersonInfo == 1)
+        {
+
+            <EscaMaker.Pages.Components.PreviewGPName Names="Components.PreviewGPName.GetPersonNomesEscala(escalaTipos)" OnClose="OnClosePreview" OnOk="OnOkPreviewName" />
+        }
+    </div>
+
+</MudOverlay>
+@code {
+    int Ano = 1, Mes = 1, MesSelected = 1;
+    List<byte>? Sabados, Domingos,Quartas;
+    string? LastPreviewUrl = null;
+    bool _visible { get; set; } = false;
+
+    int _modePersonInfo { get; set; } = 0;
+    string Nome_PreviewGP = string.Empty;
+    IEnumerable<(string? Name, byte, string)>? DiasAndFuncao;
+    static Utils.EscalaInfo[] escalasInfo = [
+        new("Momento Prévios", Utils.EscalaInfo.DiasType.SDQ),
+        new("Louvor Especial", Utils.EscalaInfo.DiasType.SDQ),
+        new("Sonoplastia", Utils.EscalaInfo.DiasType.SDQ),
+        new("Pregação", Utils.EscalaInfo.DiasType.SDQ),
+        new("Recepção", Utils.EscalaInfo.DiasType.DQ),
+        new("Programação", Utils.EscalaInfo.DiasType.DQ),
+        new("Escola Sabatina", Utils.EscalaInfo.DiasType.S),
+        new("Diácono", Utils.EscalaInfo.DiasType.S),
+        new("Professor", Utils.EscalaInfo.DiasType.S)
+    ];
+
+
+
+    View.EscalaTipoView[] escalaTipos = new View.EscalaTipoView[escalasInfo.Length];
+
+    IEnumerable<List<List<string>>?> escalaTipoNomes => from x in escalaTipos select x.Names;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        var escalatipoLen = escalaTipos.Length;
+        for (int i = 0; i < escalatipoLen; i++)
+        {
+            View.EscalaTipoView escalaTipoView = new();
+            escalaTipoView.Name = escalasInfo[i].Name;
+            escalaTipoView.Headers = escalasInfo[i].GetHeaders();
+            escalaTipoView.Datas = GetDatas(escalasInfo[i]);
+            escalaTipos[i] = escalaTipoView;
+
+        }
+    }
+    Func<IEnumerable<IEnumerable<byte>>> GetDatas(Utils.EscalaInfo escalaInfo)
+    {
+        return () => escalaInfo.GetDatas(GetDatasValues());
+    }
+    IEnumerable<IEnumerable<byte>> GetDatasValues()
+    {
+        yield return Sabados!;
+        yield return Domingos!;
+        yield return Quartas!;
+    }
+
+    string? GetMesName()
+    {
+        return Utils.DateTimeUtil.GetMesNome(MesSelected);
+    }
+    void Generate()
+    {
+        if (Mes > 0 && Mes < 13 && Ano > 0)
+        {
+            Sabados = Utils.DateTimeUtil.Days(Mes, Ano, DayOfWeek.Saturday);
+            Domingos = Utils.DateTimeUtil.Days(Mes, Ano, DayOfWeek.Sunday);
+            Quartas = Utils.DateTimeUtil.Days(Mes, Ano, DayOfWeek.Wednesday);
+            MesSelected = Mes;
+            Snackbar.Add($"Escala gerada para {Utils.DateTimeUtil.GetMesNome(Mes)}/{Ano}.", Severity.Success);
+        } else {
+            Snackbar.Add("Por favor, insira um mês e ano válidos para gerar a escala.", Severity.Error);
+        }
+
+    }
+    void GenerateMesAtual()
+    {
+        var datetimenow = DateTime.Now;
+        Mes = datetimenow.Month;
+        Ano = datetimenow.Year;
+
+        Generate(); // Re-use validation logic from Generate()
+
+        if (Sabados != null) // Check if generate was successful
+        {
+            Snackbar.Add($"Escala gerada para o mês atual ({Utils.DateTimeUtil.GetMesNome(Mes)})/{Ano}.", Severity.Success);
+        }
+    }
+    async Task GeneratePDF()
+    {
+        var bytes = Utils.GeneratePDF.GeneratePDFDocument(MesSelected, GetDatasValues(), escalaTipoNomes!, escalasInfo);
+        await EscalaService.GeneratePDF(bytes, "escala.pdf");
+        Snackbar.Add("PDF gerado e download iniciado.", Severity.Success);
+    }
+    async Task GeneratePreview()
+    {
+        var bytes = Utils.GeneratePDF.GeneratePDFDocument(MesSelected, GetDatasValues(), escalaTipoNomes!, escalasInfo);
+        if (LastPreviewUrl != null)
+        {
+            await EscalaService.DeletePreview(LastPreviewUrl);
+            LastPreviewUrl = null;
+        }
+        LastPreviewUrl = await EscalaService.GeneratePreview(bytes);
+        _visible = true;
+        StateHasChanged();
+        Snackbar.Add("Pré-visualização do PDF carregada.", Severity.Info);
+    }
+    async Task SaveLocal()
+    {
+        if (CanDisable())
+        {
+            Snackbar.Add("Nenhuma escala gerada para salvar localmente.", Severity.Warning);
+            return;
+        }
+
+        await localStorage.SetItemAsync("escala", new Utils.EscalaLocalData
+        {
+            Ano = Ano,
+            Mes = (byte)MesSelected,
+            Nomes = (from e in escalaTipos select e.Names).ToArray()
+        });
+        Snackbar.Add("Escala salva localmente com sucesso.", Severity.Success);
+    }
+    async Task LoadLocal()
+    {
+        if (await localStorage.ContainKeyAsync("escala"))
+        {
+            var escala = await localStorage.GetItemAsync<Utils.EscalaLocalData?>("escala");
+            if (escala != null)
+            {
+
+                Ano = escala.Ano;
+                Mes = escala.Mes;
+                MesSelected = escala.Mes;
+                var nomesLen = escala.Nomes.Length;
+                var escalaTipoLen = escalaTipos.Length;
+
+                for (int i = 0; i < nomesLen && i < escalaTipoLen; i++)
+                {
+                    escalaTipos[i] = escalaTipos[i] ?? new();
+                    escalaTipos[i].Names = escala.Nomes[i];
+                }
+                Generate(); // Re-generate week days based on loaded Month/Year
+                Snackbar.Add("Escala carregada localmente com sucesso.", Severity.Success);
+            }
+            else
+            {
+                Sabados = null;
+                Domingos = null;
+                Quartas = null;
+                Snackbar.Add("Nenhum dado de escala encontrado no armazenamento local.", Severity.Info);
+            }
+        } else {
+            Snackbar.Add("Nenhum dado de escala encontrado no armazenamento local.", Severity.Info);
+        }
+
+    }
+    bool CanDisable() 
+    {
+        return Sabados == null || Domingos == null || Quartas == null;
+    }
+
+    void GenerateInfo()
+    {
+        _modePersonInfo = 1;
+    }
+    void OnOkPreviewName(string name)
+    {
+        var info = View.EscalaTipoView.GetDias(escalaTipos, name);
+        this.Nome_PreviewGP = name;
+        this.DiasAndFuncao = info;
+        _modePersonInfo = 2;
+        this.StateHasChanged();
+    }
+    void OnClosePreview()
+    {
+        _modePersonInfo = 0;
+        this.StateHasChanged();
+    }
+
+    async Task OpenPeriodoView(int diaInicial, int diaFinal)
+    {
+        var responsavelInfos = Components.EscalaPeriodoView.SelectByPeriodo(this.escalaTipos,diaInicial,diaFinal);
+        var parameters2 = new DialogParameters<Components.EscalaPeriodoView> {
+            { "responsavelInfos", responsavelInfos },
+            {"Date", (Mes,Ano)}
+        };
+        var dialogoptions2 = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true }; // Added FullWidth
+        var dialog2 = await DialogService.ShowAsync<Components.EscalaPeriodoView>("Visualização do período",
+            parameters2,
+            dialogoptions2);
+
+        // var dialogresult2 = await dialog2.Result; // No need to await if no special result handling is needed
+    }
+    async Task SelectPeriodo()
+    {
+        var parameters = new DialogParameters<Components.EscalaPeriodoSelect> {
+            { "Mes", MesSelected },
+            { "Ano", Ano }
+        };
+        var dialogoptions = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium };
+        var dialog = await DialogService.ShowAsync<Components.EscalaPeriodoSelect>("Seleção de período",
+            parameters,
+            dialogoptions);
+
+        var dialogresult = await dialog.Result;
+        if (dialogresult.Canceled)
+        {
+            Snackbar.Add("Seleção de período cancelada.", Severity.Info);
+            return;
+        }
+
+        if (dialogresult.Data is int dia)
+        {
+            await OpenPeriodoView(dia,dia);
+            Snackbar.Add($"Visualizando escala para o dia {dia:D02}/{MesSelected:D02}.", Severity.Success);
+
+        } else if (dialogresult.Data is ValueTuple<int, int> spanData)
+        {
+            await OpenPeriodoView(spanData.Item1, spanData.Item2);
+            Snackbar.Add($"Visualizando escala para o período de {spanData.Item1:D02} a {spanData.Item2:D02}/{MesSelected:D02}.", Severity.Success);
+
+        }
+    }
+
+    async Task ExportData()
+    {
+        if (CanDisable())
+        {
+            Snackbar.Add("Nenhuma escala gerada para exportar.", Severity.Warning);
+            return;
+        }
+
+        var escalaData = new Utils.EscalaLocalData
+        {
+            Ano = Ano,
+            Mes = (byte)MesSelected,
+            Nomes = escalaTipoNomes.ToArray()
+        };
+        var parameters = new DialogParameters<Components.ExportDataEscala> {
+            { "escalaData", escalaData },
+        };
+        var dialogoptions = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium };
+        var dialog = await DialogService.ShowAsync<Components.ExportDataEscala>("Exportar escalas",
+            parameters,
+            dialogoptions);
+
+        // A ExportDataEscala cuida do download, então não esperamos um resultado aqui.
+        Snackbar.Add("Processo de exportação iniciado.", Severity.Info);
+    }
+    async Task ImportData()
+    {
+        var dialogoptions = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium };
+        var dialog = await DialogService.ShowAsync<Components.ImportDataEscala>("Importar escalas",
+            dialogoptions);
+
+        var dialogresult = await dialog.Result;
+        if (dialogresult.Canceled)
+        {
+            Snackbar.Add("Importação de escalas cancelada.", Severity.Info);
+            return;
+        }
+
+        if (dialogresult.Data is Utils.EscalaLocalData escalaLocalData)
+        {
+            try
+            {
+
+
+                if (escalaLocalData != null)
+                {
+                    Ano = escalaLocalData.Ano;
+                    Mes = escalaLocalData.Mes;
+                    MesSelected = escalaLocalData.Mes;
+                    var nomesLen = escalaLocalData.Nomes.Length;
+                    var escalaTipoLen = escalaTipos.Length;
+
+                    for (int i = 0; i < nomesLen && i < escalaTipoLen; i++)
+                    {
+                        escalaTipos[i] = escalaTipos[i] ?? new(); // Garante que o objeto exista
+                        escalaTipos[i].Names = escalaLocalData.Nomes[i];
+                    }
+                    Generate(); // Regenerar os dias da semana com base no Mês/Ano carregado
+                    Snackbar.Add("Dados de escala importados com sucesso!", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Falha ao desserializar os dados do arquivo JSON. Verifique o formato.", Severity.Error);
+                }
+            }
+            catch (Newtonsoft.Json.JsonException ex)
+            {
+                Snackbar.Add($"Erro ao ler o arquivo JSON: {ex.Message}", Severity.Error);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Erro inesperado ao importar os dados: {ex.Message}", Severity.Error);
+            }
+        }
+        else
+        {
+            Snackbar.Add("Nenhum arquivo válido foi selecionado para importação.", Severity.Warning);
+        }
+    }
+
+    void ClearSchedules()
+    {
+        var escalaTipoLen = escalaTipos.Length;
+
+        for (int i = 0; i < escalaTipoLen; i++)
+        {
+            var cur = escalaTipos[i]; // Garante que o objeto exista
+            var curLen = cur.Names.Count;
+            for (int j = 0; j < curLen; j++)
+            {
+                var curJ = cur.Names[j];
+                var curJLen = curJ.Count;
+                for (int k = 0; k < curJLen; k++)
+                {
+                    curJ[k] = string.Empty;
+                }
+            }
+        }
+        Snackbar.Add("Todas as escalas foram limpas com sucesso.", Severity.Info);
+        StateHasChanged(); // Notify Blazor to re-render the component with the cleared state
+    }
+}

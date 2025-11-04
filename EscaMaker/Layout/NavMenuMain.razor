@@ -1,0 +1,10 @@
+﻿<MudNavMenu Bordered="false"> @* Removido Bordered para um visual mais limpo *@
+    <MudDrawerHeader Class="d-flex align-center justify-center py-4">
+        <MudImage Src="img/logo.png" Alt="Logo EscaMaker" Width="60" Height="60" Class="mr-2" /> @* Sugestão de logo *@
+        <MudText Typo="Typo.h5" Class="font-weight-bold">EscaMaker</MudText>
+    </MudDrawerHeader>
+    <MudDivider Class="my-2" />
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+    <MudNavLink Href="/escala-create" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.CalendarMonth">Criar Escala</MudNavLink>
+    @* Adicione novos links de navegação aqui conforme sua aplicação cresce *@
+</MudNavMenu>

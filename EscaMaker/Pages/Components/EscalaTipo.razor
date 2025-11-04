@@ -1,0 +1,113 @@
+﻿<MudCard Outlined="true" Elevation="2"> @* Cada EscalaTipo agora é um card individual *@
+    <MudCardHeader>
+        <MudText Typo="Typo.h5" Class="font-weight-bold">Escala de @Nome</MudText>
+    </MudCardHeader>
+    <MudCardContent Class="pa-0"> @* Removido padding para os ExpansionPanels se encaixarem melhor *@
+        @if (Datas != null)
+        {
+            <MudExpansionPanels MultiExpansion="true" Class="mud-elevation-0"> @* Permite expandir múltiplos painéis e remove elevação padrão *@
+                @foreach (var valuesInfo in GetValues())
+                {
+					
+                    var idxcur = valuesInfo.Index;
+                    var Dias = valuesInfo.Dias;
+                    var NamesCur = Nomes[idxcur];
+                    int i = 0;
+
+                    <MudExpansionPanel Text="@valuesInfo.Header" @key="valuesInfo.Header" HideIcon="true"> @* ExpansionPanel para cada grupo de dias *@
+                        
+						@{
+							var DiasIndex = Dias.Select((e, idx) => (e, idx));
+						}
+						<MudTable Items="@DiasIndex" Dense="true" Hover="true" Bordered="false" Striped="true">
+							@* MudTable mais estilizada *@
+
+							<HeaderContent>
+								<MudTh Style="width: 50px">Dia</MudTh>
+								<MudTh>Nome</MudTh>
+							</HeaderContent>
+							<RowTemplate>
+								<MudTd DataLabel="Dia">@context.e.ToString("D02")</MudTd>
+								<MudTd DataLabel="Nome">
+
+									<MudTextField @bind-Value="NamesCur[context.idx]" T="string" Variant="Variant.Text" Margin="Margin.Dense" /> @* MudTextField com Variant.Text dentro da tabela *@
+								</MudTd>
+							</RowTemplate>
+						</MudTable>
+                    </MudExpansionPanel>
+                }
+            </MudExpansionPanels>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+	public Func<IEnumerable<IEnumerable<byte>>> Datas { get => EscalaTipo_View.Datas; }
+
+	public string Nome { get => EscalaTipo_View?.Name!; }
+	public List<List<string>>? Nomes { get => EscalaTipo_View?.Names; set => EscalaTipo_View.Names = value; }
+
+	[Parameter]
+	public View.EscalaTipoView EscalaTipo_View { get; set; } = new View.EscalaTipoView(); @* Inicializado para evitar null reference *@
+	
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+	}
+	protected override void OnParametersSet()
+	{
+		OnUpdate();
+	}
+
+	public void OnUpdate()
+	{
+		var DatasValues = Datas();
+		var DatasLen = DatasValues.Count();
+		if (Nomes == null)
+		{
+			Nomes = new();
+			foreach (var dataValues in DatasValues)
+			{
+				var ls = new List<string>();
+				foreach (var data in dataValues)
+				{
+					ls.Add(string.Empty);
+				}
+				Nomes.Add(ls);
+			}
+		} else
+		{
+			if (Nomes.Count != DatasLen)
+			{
+				Utils.ListExtra.Resize(Nomes, DatasLen);
+			}
+			var i = 0;
+			foreach (var data in DatasValues)
+			{
+				var DataLen = data.Count();
+				var cur = Nomes[i];
+				if (DataLen != cur.Count)
+				{
+					Utils.ListExtra.Resize(cur, DataLen,() => string.Empty);
+				}
+				i++;
+			}
+		}
+
+		base.OnParametersSet();
+	}
+	IEnumerable<(int Index,IEnumerable<byte> Dias,string Header)> GetValues()
+	{
+		var _Datas = Datas().GetEnumerator();
+		var _Headers = this.EscalaTipo_View.Headers.GetEnumerator();
+		var i = 0;
+		while (_Datas.MoveNext() && _Headers.MoveNext())
+		{
+			
+			yield return (i++,_Datas.Current,_Headers.Current );
+		}
+		_Datas.Dispose();
+		_Headers.Dispose();
+	}
+}
+

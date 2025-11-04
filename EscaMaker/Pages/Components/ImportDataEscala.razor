@@ -1,0 +1,84 @@
+﻿@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        Importar Dados de Escala
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudText>Selecione um arquivo JSON para importar os dados da escala.</MudText>
+            <MudFileUpload T="IBrowserFile" FilesChanged="OnFileUpload" Required="true"
+                           Accept=".json" Error="_hasError">
+                <ActivatorContent>
+                    <MudButton HtmlTag="label"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.FileUpload">
+                        Selecionar Arquivo
+                    </MudButton>
+                </ActivatorContent>
+                <SelectedTemplate>
+                    @if (context != null)
+                    {
+                        <MudText><b>@_file.Name</b> <code>@_file.Size bytes</code></MudText>
+                    }
+                    else
+                    {
+                        <MudText>Nenhum Arquivo</MudText>
+                    }
+                </SelectedTemplate>
+               
+            </MudFileUpload>
+           
+            
+            @if (_hasError)
+            {
+                <MudText Color="Color.Error" Typo="Typo.body2">Por favor, selecione um arquivo JSON válido.</MudText>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Importar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private IBrowserFile _file;
+    private bool _hasError = false;
+
+    private void OnFileUpload(IBrowserFile file)
+    {
+        _file = file;
+        _hasError = false; // Reset error on new file selection
+    }
+
+    private async Task Submit()
+    {
+        if (_file is null)
+        {
+            _hasError = true;
+            Snackbar.Add("Por favor, selecione um arquivo.", Severity.Error);
+            return;
+        }
+
+        if (!_file.Name.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            _hasError = true;
+            Snackbar.Add("O arquivo deve ser do tipo JSON (.json).", Severity.Error);
+            return;
+        }
+
+        // Se o arquivo for válido, fechar o diálogo com o arquivo
+        using var stream = _file.OpenReadStream(1024*10);
+        StreamReader reader = new(stream);
+        var txt = await reader.ReadToEndAsync();
+        var data = System.Text.Json.JsonSerializer.Deserialize<Utils.EscalaLocalData>(txt);
+        MudDialog.Close(DialogResult.Ok(data));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

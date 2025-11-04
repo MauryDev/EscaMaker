@@ -1,0 +1,160 @@
+﻿@using ClipLazor.Components;
+@inject ISnackbar _snackbar
+
+@inject IClipLazor Clipboard
+<MudDialog>
+    <TitleContent>
+        Visualização do período
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3" Class="mb-4">
+            <MudCheckBox T="bool" @bind-Value="IsFilterActive" Label="Filtrar por Nome" Color="Color.Primary" />
+            @if (IsFilterActive)
+            {
+                <MudAutocomplete T="string" Label="Nome do Responsável" @bind-Value="SelectedFilterName"
+                                 SearchFunc="@SearchNames" Clearable="true" Variant="Variant.Outlined"
+                                 AdornmentIcon="@Icons.Material.Filled.PersonSearch" />
+            }
+        </MudStack>
+
+        @if (FilteredResponsavelInfos is not null && FilteredResponsavelInfos.Any())
+        {
+            <MudTable Items="@FilteredResponsavelInfos.OrderBy(x => x.Nome)" Height="300px" FixedHeader="true" Dense="true" Hover="true" Bordered="true" Striped="true">
+                <HeaderContent>
+                    <MudTh>Dia</MudTh>
+                    <MudTh>Nome</MudTh>
+                    <MudTh>Escala</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Dia">@context.dia.ToString("D02")</MudTd>
+                    <MudTd DataLabel="Nome">@context.Nome</MudTd>
+                    <MudTd DataLabel="Escala">@context.Escala</MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText>Nenhum responsável encontrado.</MudText>
+                </NoRecordsContent>
+                <LoadingContent>
+                    <MudText>Carregando...</MudText>
+                </LoadingContent>
+            </MudTable>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Info" Class="mt-4">Nenhuma informação de responsável disponível para este período com o filtro atual.</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="OnCopy" Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.ContentCopy">Copiar</MudButton>
+        <MudButton OnClick="Cancel">Fechar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public (int Mes, int Ano) Date { get; set; }
+    [Parameter]
+    public List<(byte dia, string Nome, string Escala)> responsavelInfos { get; set; }
+
+    public bool IsFilterActive { get; set; } = false;
+    public string SelectedFilterName { get; set; }
+
+    // Propriedade computada para a lista filtrada
+    private IEnumerable<(byte dia, string Nome, string Escala)> FilteredResponsavelInfos
+    {
+        get
+        {
+            if (!IsFilterActive || string.IsNullOrWhiteSpace(SelectedFilterName))
+            {
+                return responsavelInfos ?? new List<(byte, string, string)>();
+            }
+            return responsavelInfos?.Where(info => info.Nome.Contains(SelectedFilterName, StringComparison.OrdinalIgnoreCase))
+                   ?? new List<(byte, string, string)>();
+        }
+    }
+
+    // Método para buscar nomes para o MudAutocomplete
+    private async Task<IEnumerable<string>> SearchNames(string? value, CancellationToken cancellationToken)
+    {
+        // Se a lista ou o valor de busca estiver vazio, retorna todos os nomes únicos
+        if (responsavelInfos == null || string.IsNullOrWhiteSpace(value))
+            return await Task.FromResult(responsavelInfos?.Select(x => x.Nome).Distinct().OrderBy(x => x) ?? Enumerable.Empty<string>());
+
+        // Filtra os nomes baseados no valor de busca
+        return await Task.FromResult(responsavelInfos
+            .Select(x => x.Nome)
+            .Distinct()
+            .Where(x => x.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(x => x));
+    }
+
+    public async Task OnCopy()
+    {
+        System.Text.StringBuilder stringBuilder = new();
+        stringBuilder.AppendLine("Programação de culto");
+        stringBuilder.AppendLine("-------------");
+
+        // Usar FilteredResponsavelInfos para a cópia
+        if (FilteredResponsavelInfos != null && FilteredResponsavelInfos.Any())
+        {
+            var groupBy = FilteredResponsavelInfos.GroupBy((e) => e.dia).OrderBy(g => g.Key);
+
+            foreach (var diaFuncoes in groupBy)
+            {
+                var dia = diaFuncoes.Key;
+                var diaSemana = Utils.DateTimeUtil.GetDiaSemanaNome(new DateTime(Date.Ano, Date.Mes, dia).DayOfWeek);
+                stringBuilder.AppendLine($"{dia:D02}/{Date.Mes:D02} - {diaSemana}");
+                stringBuilder.AppendLine();
+
+                foreach (var info in diaFuncoes.OrderBy(i => i.Nome)) // Ordena por nome na cópia também
+                {
+                    stringBuilder.AppendLine($"{info.Nome} - {info.Escala}");
+
+                }
+                stringBuilder.AppendLine();
+            }
+        }
+        else
+        {
+            stringBuilder.AppendLine("Nenhuma informação para copiar com o filtro atual.");
+        }
+
+        await Clipboard.WriteTextAsync(stringBuilder.ToString().AsMemory());
+        _snackbar.Add("Conteúdo copiado para a área de transferência!", Severity.Success);
+
+    }
+
+
+    private void Submit()
+    {
+        // Este método pode ser removido se não houver lógica de submissão para esta view.
+        // Se for necessário para fechar, pode-se chamar MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+    public static List<(byte dia, string Nome, string Escala)> SelectByPeriodo(IEnumerable<View.EscalaTipoView> escalaTipo, int diaInicial, int diaFinal)
+    {
+        var query =
+        from escalaTipoCur in escalaTipo
+
+            // Nível 2: 'Zip' os períodos (dias e nomes) para cada escala
+        from periodo in escalaTipoCur.Datas().Zip(escalaTipoCur.Names)
+
+            // Nível 3: 'Zip' os dias e nomes dentro de cada período
+        from diaNome in periodo.First.Zip(periodo.Second)
+
+            // Filtragem: Apenas os dias no período
+        where diaNome.First >= diaInicial && diaNome.First <= diaFinal
+
+        // Projeção: Cria a tupla final com nomes descritivos
+        select (Dia: diaNome.First, Nome: diaNome.Second, Escala: escalaTipoCur.Name);
+
+        // Ordenação e ToList
+        var namesList = query
+            .OrderBy(r => r.Dia)
+            .ToList();
+
+        return namesList;
+    }
+}

@@ -1,0 +1,29 @@
+﻿@inject Services.JsonExport jsonExportService
+<MudDialog>
+    <TitleContent>
+        Exportar escalas
+    </TitleContent>
+    <DialogContent>
+        <MudText>Você desejar exportar os dados?</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Não</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Sim</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public Utils.EscalaLocalData escalaData { get; set; }
+    private async Task Submit()
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(escalaData);
+
+        await jsonExportService.GeneratePDF(json, "escalas-data.json");
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}
