@@ -1,10 +1,8 @@
-﻿using static MudBlazor.CategoryTypes;
-
-namespace EscaMaker.Utils;
+﻿namespace EscaMaker.Utils;
 
 public class DateTimeUtil
 {
-    static string[] mesNomes = [
+    static readonly string[] mesNomes = [
         "Janeiro",
         "Fevereiro",
         "Março",
@@ -18,6 +16,8 @@ public class DateTimeUtil
         "Novembro",
         "Dezembro"
     ];
+    public static string[] GetMesesNome() => mesNomes;
+
     public static string? GetMesNome(int mes)
     {
         if (mes > 0 && mes < 13)
@@ -28,8 +28,6 @@ public class DateTimeUtil
     }
     public static int FirstDayFromWeekDay(int mes, int ano, DayOfWeek dayOfWeek)
     {
-        var totaldays = DateTime.DaysInMonth(ano, mes);
-
         var firstDay = new DateTime(ano, mes, 1);
         if (firstDay.DayOfWeek == dayOfWeek)
             return 1;

@@ -16,7 +16,7 @@
                     @for (int i = 1; i <= 12; i++)
                     {
                         var cur = i;
-                        <MudSelectItem Value="cur">@Utils.DateTimeUtil.GetMesNome(cur)</MudSelectItem>
+                        <MudSelectItem Value="@cur">@Utils.DateTimeUtil.GetMesNome(cur)</MudSelectItem>
                     }
                 </MudSelect>
             </MudItem>
@@ -99,7 +99,6 @@
                            OnClick="SelectPeriodo">Escalas por Período</MudButton>
             </MudItem>
 
-             <!-- Importar/Exportar JSON -->
             <MudItem xs="12" sm="6" md="4" lg="3">
                 <MudButton FullWidth="true"
                            Color="Color.Primary"

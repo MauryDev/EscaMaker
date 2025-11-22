@@ -12,29 +12,7 @@
                     var idxcur = valuesInfo.Index;
                     var Dias = valuesInfo.Dias;
                     var NamesCur = Nomes[idxcur];
-                    int i = 0;
-
-                    <MudExpansionPanel Text="@valuesInfo.Header" @key="valuesInfo.Header" HideIcon="true"> @* ExpansionPanel para cada grupo de dias *@
-                        
-						@{
-							var DiasIndex = Dias.Select((e, idx) => (e, idx));
-						}
-						<MudTable Items="@DiasIndex" Dense="true" Hover="true" Bordered="false" Striped="true">
-							@* MudTable mais estilizada *@
-
-							<HeaderContent>
-								<MudTh Style="width: 50px">Dia</MudTh>
-								<MudTh>Nome</MudTh>
-							</HeaderContent>
-							<RowTemplate>
-								<MudTd DataLabel="Dia">@context.e.ToString("D02")</MudTd>
-								<MudTd DataLabel="Nome">
-
-									<MudTextField @bind-Value="NamesCur[context.idx]" T="string" Variant="Variant.Text" Margin="Margin.Dense" /> @* MudTextField com Variant.Text dentro da tabela *@
-								</MudTd>
-							</RowTemplate>
-						</MudTable>
-                    </MudExpansionPanel>
+					<EscalaDiaCollection Names="@NamesCur" Value="valuesInfo"/>
                 }
             </MudExpansionPanels>
         }

@@ -12,7 +12,7 @@
         <MudSpacer />
         <MudIconButton Icon="@IconButtonChangeTheme" Color="Color.Inherit" OnClick="@((e) => isDarkMode = !isDarkMode)" />
     </MudAppBar>
-    <MudDrawer @bind-Open="@_drawerOpen">
+    <MudDrawer @bind-Open="@_drawerOpen" Variant="DrawerVariant.Temporary">
         <NavMenuMain/>
     </MudDrawer>
     <MudMainContent Class="px-4"> @* Alterado para espaçamento mais moderno *@

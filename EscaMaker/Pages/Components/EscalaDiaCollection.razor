@@ -1,0 +1,22 @@
+﻿<MudExpansionPanel Text="@Value.Header" @key="Value.Header" HideIcon="true">
+
+	
+	<MudTable Items="@DiasIndex" Dense="true" Hover="true" Bordered="false" Striped="true">
+		<HeaderContent>
+			<MudTh Style="width: 50px">Dia</MudTh>
+			<MudTh>Nome</MudTh>
+		</HeaderContent>
+		<RowTemplate>
+			<EscalaDia @key="@context.Dia" Dia="@context.Dia" Index="context.Index" OnChange="OnChangeValue" />
+		</RowTemplate>
+	</MudTable>
+</MudExpansionPanel>
+
+@code {
+	[Parameter]
+	public (int Index, IEnumerable<byte> Dias, string Header) Value { get; set; }
+	[Parameter]
+	public List<string> Names { get; set; }
+	public void OnChangeValue(int idx, string value) => Names[idx] = value;
+	public IEnumerable<(byte Dia, int Index)> DiasIndex => Value.Dias.Select((dia, idx) => (dia, idx));
+}

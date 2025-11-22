@@ -9,11 +9,15 @@
   <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="ClipLazor" Version="3.0.2" />
-    <PackageReference Include="itext" Version="9.3.0" preserve="all"/>
-    <PackageReference Include="itext.bouncy-castle-adapter" Version="9.3.0" preserve="all"/>
+    <PackageReference Include="itext" Version="9.3.0" preserve="all" />
+    <PackageReference Include="itext.bouncy-castle-adapter" Version="9.3.0" preserve="all" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.10" PrivateAssets="all" />
     <PackageReference Include="MudBlazor" Version="8.13.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\img\icons\" />
   </ItemGroup>
 
 </Project>
