@@ -1,17 +1,14 @@
 ﻿<MudTd DataLabel="Dia">@Dia</MudTd>
 <MudTd DataLabel="Nome">
-	<MudTextField ValueChanged="OnChangeValue" T="string" Variant="Variant.Text" Margin="Margin.Dense" /> @* MudTextField com Variant.Text dentro da tabela *@
+	<MudTextField Value="@Name" ValueChanged="@NameChanged"  Variant="Variant.Text" Margin="Margin.Dense" /> @* MudTextField com Variant.Text dentro da tabela *@
 </MudTd>
 
 @code {
 	[Parameter]
+	public string Name { get; set; }
+	[Parameter]
+	public EventCallback<string> NameChanged { get; set; }
+	[Parameter]
 	public byte Dia { get; set; }
-	[Parameter]
-	public int Index { get; set; }
-	[Parameter]
-	public Action<int,string> OnChange { get; set; }
-	void OnChangeValue(string value)
-	{
-		OnChange(Index, value);
-	}
+	
 }

@@ -2,7 +2,7 @@
 
 namespace EscaMaker.Services;
 
-public class JsonExport
+public class JsonExport 
 {
     private readonly IJSRuntime _jsRuntime;
     IJSObjectReference? modulePDF;
@@ -15,7 +15,7 @@ public class JsonExport
         modulePDF ??= await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/exportJson.js");
         return modulePDF;
     }
-    public async Task GeneratePDF(string data,string filename)
+    public async Task GenerateJSONFile(string data,string filename)
     {
         // Call the JavaScript function to generate the PDF
         var module = await GetModule();

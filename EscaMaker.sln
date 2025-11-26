@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "EscaMaker.API", "EscaMaker.API\EscaMaker.API.esproj", "{82CDED42-8AC8-6CDF-611F-BD6193F90C5A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,12 @@ Global
 		{660E14EB-E897-D966-AE86-15E0164B1ACE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{660E14EB-E897-D966-AE86-15E0164B1ACE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{660E14EB-E897-D966-AE86-15E0164B1ACE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82CDED42-8AC8-6CDF-611F-BD6193F90C5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82CDED42-8AC8-6CDF-611F-BD6193F90C5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82CDED42-8AC8-6CDF-611F-BD6193F90C5A}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{82CDED42-8AC8-6CDF-611F-BD6193F90C5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82CDED42-8AC8-6CDF-611F-BD6193F90C5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82CDED42-8AC8-6CDF-611F-BD6193F90C5A}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

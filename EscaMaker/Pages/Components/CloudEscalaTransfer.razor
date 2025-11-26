@@ -1,0 +1,187 @@
+﻿@inject IEscalaDataTransferService _escalaDataTransferService
+@inject MudBlazor.IDialogService DialogService
+@inject MudBlazor.ISnackbar Snackbar
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject Services.AdminApiService AdminApiService
+
+@using EscaMaker.Services.Contracts
+@using EscaMaker.Utils.EscalaTransfer
+
+<MudDialog>
+    <TitleContent>
+        <MudText>Ferramenta de cloud</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudCard Outlined="true">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Cloud Escala Transfer</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudAutocomplete T="string"
+                                 @bind-Value="CloudResourceName"
+                                 Label="Cloud Resource Name"
+                                 Placeholder="e.g. my-escala-bucket/path"
+                                 Variant="Variant.Text"
+                                 Margin="Margin.Dense"
+                                 Clearable="true"
+                                 Adornment="Adornment.End"
+                                 AdornmentIcon="@Icons.Material.Filled.Cloud"
+                                 FullWidth="true"
+                                 SearchFunc="@SearchCloudResources"
+                                 CoerceText="true"
+                                 CoerceValue="true" />
+            </MudCardContent>
+            <MudCardActions Class="d-flex justify-center flex-wrap gap-2 pa-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleExport" Disabled="NoCanWrite">
+                    Exportar
+                </MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="HandleImport" Disabled="NoCanRead">
+                    Importar
+                </MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="HandleDelete" Disabled="NoCanRead">
+                    Deletar
+                </MudButton>
+            </MudCardActions>
+        </MudCard>
+
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    public enum TransferType
+    {
+        Delete,
+        Read,
+        Write
+    }
+    public record ReturnValue(TransferType TransferType, object? value);
+
+
+    [CascadingParameter]
+    public IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public Utils.EscalaLocalData? EscalaLocalData { get; set; }
+
+    private string CloudResourceName { get; set; } = string.Empty;
+    private string[]? _cloudResourceNames;
+
+    bool NoCanWrite => string.IsNullOrWhiteSpace(CloudResourceName) || EscalaLocalData == null;
+    bool NoCanRead => string.IsNullOrWhiteSpace(CloudResourceName);
+
+    private IEscalaTransfer _cloudProvider;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var value = await LocalStorage.GetItemAsStringAsync("authToken");
+        if (value != null)
+        {
+            AdminApiService.LoadAuthToken(value);
+        }
+
+        if (AdminApiService.IsAuthenticated)
+        {
+            _cloudResourceNames = await AdminApiService.GetAllNames();
+        }
+        else
+            _cloudResourceNames = [];
+
+        _cloudProvider = _escalaDataTransferService.GetCloudProvider(() => CloudResourceName);
+    }
+
+    private async Task<IEnumerable<string>> SearchCloudResources(string value, CancellationToken token)
+    {
+        // if text is null or empty, show complete list
+        if (string.IsNullOrEmpty(value))
+        {
+            return _cloudResourceNames ?? Array.Empty<string>();
+        }
+
+        return _cloudResourceNames?.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)) ?? Array.Empty<string>();
+    }
+
+    private async Task HandleExport()
+    {
+        
+
+        var dialog = await DialogService.ShowMessageBox("Confirmar Export", "Desejar exportar a escala", "Sim", "Não");
+
+        if (dialog ?? false)
+        {
+            try
+            {
+                var resultado = await _cloudProvider.Export(EscalaLocalData); // Assuming IEscalaTransfer has an Export method
+                MudDialog.Close(new ReturnValue(TransferType.Write, resultado));
+                if (resultado)
+                    Snackbar.Add($"A exportação para '{CloudResourceName}' foi bem-sucedida.", Severity.Success);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro na exportação: {ex.Message}");
+                Snackbar.Add($"Erro na exportação: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task HandleImport()
+    {
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowMessageBox("Confirmar Import", "Desejar importar os dados da nuvem");
+
+        if (dialog ?? false)
+        {
+            try
+            {
+                var data = await _cloudProvider.Import();
+                MudDialog.Close(new ReturnValue(TransferType.Read, data));
+
+                Snackbar.Add($"Dados salvos em '{CloudResourceName}' com sucesso", Severity.Success);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro na importação: {ex.Message}");
+                Snackbar.Add($"Erro na importação: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+
+    void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    async Task HandleDelete()
+    {
+       
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowMessageBox("Confirmar Delete", "Desejar deletar da nuvem?", "Sim", "Não");
+
+        if (dialog ?? false)
+        {
+            try
+            {
+                var resultado = await _cloudProvider.Delete();
+                MudDialog.Close(new ReturnValue(TransferType.Delete, resultado));
+
+
+                Snackbar.Add($"'{CloudResourceName}' foi deletado com sucesso.", Severity.Success);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro em deletar: {ex.Message}");
+                Snackbar.Add($"Erro em deletar: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+   
+}

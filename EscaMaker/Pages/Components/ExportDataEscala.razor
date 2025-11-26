@@ -1,4 +1,5 @@
-﻿@inject Services.JsonExport jsonExportService
+﻿@inject Services.Contracts.IEscalaDataTransferService escalaDataTransferService
+
 <MudDialog>
     <TitleContent>
         Exportar escalas
@@ -17,12 +18,18 @@
     private IMudDialogInstance MudDialog { get; set; }
     [Parameter]
     public Utils.EscalaLocalData escalaData { get; set; }
+
+    Utils.EscalaTransfer.IEscalaTransfer EscalaActions { get; set; }
+
+    protected override void OnInitialized()
+    {
+        EscalaActions = escalaDataTransferService.GetBrowserFileProvider();
+        base.OnInitialized();
+    }
     private async Task Submit()
     {
-        var json = System.Text.Json.JsonSerializer.Serialize(escalaData);
-
-        await jsonExportService.GeneratePDF(json, "escalas-data.json");
-        MudDialog.Close(DialogResult.Ok(true));
+        var result = await EscalaActions.Export(escalaData);
+        MudDialog.Close(DialogResult.Ok(result));
     }
 
     private void Cancel() => MudDialog.Cancel();

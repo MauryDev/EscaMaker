@@ -1,0 +1,79 @@
+﻿@page "/login"
+@inject AdminApiService _adminAPIService
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+@using EscaMaker.Services
+@using EscaMaker.Utils
+
+<MudForm  @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+    <MudTextField @bind-Value="Username"
+                  Label="Username"
+                  Required="true"
+                  RequiredError="Username is required!"
+                  Variant="Variant.Text"
+                  Margin="Margin.Dense" />
+    <MudTextField @bind-Value="Password"
+                  Label="Password"
+                  InputType="InputType.Password"
+                  Required="true"
+                  RequiredError="Password is required!"
+                  Variant="Variant.Text"
+                  Margin="Margin.Dense" />
+
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Class="my-4">@ErrorMessage</MudAlert>
+    }
+
+    <div class="d-flex align-items-center justify-content-end mt-4">
+        <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleLogin">Login</MudButton>
+    </div>
+</MudForm>
+
+@code {
+
+    private MudForm form { get; set; }
+    private bool success { get; set; }
+    private string[] errors = { };
+
+    private string Username { get; set; } = string.Empty;
+    private string Password { get; set; } = string.Empty;
+    private string ErrorMessage { get; set; } = string.Empty;
+
+    private async Task HandleLogin()
+    {
+        ErrorMessage = string.Empty;
+        await form.Validate(); 
+
+        if (success) 
+        {
+            var request = new View.Login
+            {
+                user = Username,
+                password = Password
+            };
+
+            try
+            {
+                var (errorMsg,result) = await _adminAPIService.LoginAsync(Username, Password);
+
+                if (result != null)
+                {
+                    await localStorage.SetItemAsStringAsync("authToken", result);
+                    NavigationManager.NavigateTo("/");
+                }
+                else
+                {
+                    ErrorMessage = errorMsg!;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle potential exceptions during the API call
+                Console.WriteLine($"Login error: {ex.Message}");
+                ErrorMessage = "An unexpected error occurred during login. Please try again.";
+            }
+        }
+    }
+}

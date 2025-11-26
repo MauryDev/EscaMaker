@@ -1,8 +1,9 @@
 ﻿@page "/escala-create"
 @inject Services.PDFEscala EscalaService
-@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject Services.Contracts.IEscalaDataTransferService escalaDataTransferService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject Services.AdminApiService AdminApiService
 
 <PageTitle>Criar Escala</PageTitle>
 <MudContainer MaxWidth="MaxWidth.Large" Class="my-4">
@@ -116,6 +117,14 @@
                            Style="border-radius:24px;"
                            OnClick="ImportData">Importar Escalas</MudButton>
             </MudItem>
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudButton FullWidth="true"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Cloud"
+                           Variant="Variant.Filled"
+                           Style="border-radius:24px;"
+                           OnClick="CloudTools">Cloud</MudButton>
+            </MudItem>
         </MudGrid>
     </MudPaper>
 
@@ -131,14 +140,11 @@
         <MudText Class="mt-8 mb-4 text-center" Typo="Typo.h4" Align="Align.Center">Mês de @GetMesName()</MudText>
         <MudDivider DividerType="DividerType.FullWidth"/>
         <MudGrid Spacing="4">
-            @foreach (var info in escalasInfo)
+            @foreach (var tipos in escalaTipos)
             {
                 int curi = i++;
-                
-                var curvalue = escalaTipos[curi];
                 <MudItem xs="12" sm="6" md="4">
-                    <EscaMaker.Pages.Components.EscalaTipo @key="curi"
-                        EscalaTipo_View="curvalue"  />
+                    <EscaMaker.Pages.Components.EscalaTipo EscalaTipo_View="tipos" />
                 </MudItem>
             }
         </MudGrid>
@@ -193,9 +199,13 @@
 
     IEnumerable<List<List<string>>?> escalaTipoNomes => from x in escalaTipos select x.Names;
 
+    Utils.EscalaTransfer.IEscalaTransfer? EscalaActions { get; set; }
     protected override void OnInitialized()
     {
+
         base.OnInitialized();
+        EscalaActions = escalaDataTransferService.GetLocalStorageProvider();
+
         var escalatipoLen = escalaTipos.Length;
         for (int i = 0; i < escalatipoLen; i++)
         {
@@ -268,6 +278,22 @@
         StateHasChanged();
         Snackbar.Add("Pré-visualização do PDF carregada.", Severity.Info);
     }
+
+    void UpdateEscala(Utils.EscalaLocalData escalaLocalData)
+    {
+        Ano = escalaLocalData.Ano;
+        Mes = escalaLocalData.Mes;
+        MesSelected = escalaLocalData.Mes;
+        var nomesLen = escalaLocalData.Nomes.Length;
+        var escalaTipoLen = escalaTipos.Length;
+
+        for (int i = 0; i < nomesLen && i < escalaTipoLen; i++)
+        {
+            escalaTipos[i] = escalaTipos[i] ?? new();
+            escalaTipos[i].Names = escalaLocalData.Nomes[i];
+        }
+        Generate();
+    }
     async Task SaveLocal()
     {
         if (CanDisable())
@@ -275,45 +301,32 @@
             Snackbar.Add("Nenhuma escala gerada para salvar localmente.", Severity.Warning);
             return;
         }
-
-        await localStorage.SetItemAsync("escala", new Utils.EscalaLocalData
+        var escaladata = new Utils.EscalaLocalData
         {
             Ano = Ano,
             Mes = (byte)MesSelected,
             Nomes = (from e in escalaTipos select e.Names).ToArray()
-        });
-        Snackbar.Add("Escala salva localmente com sucesso.", Severity.Success);
+        };
+        if (await EscalaActions.Export(escaladata))
+            Snackbar.Add("Escala salva localmente com sucesso.", Severity.Success);
+        else
+            Snackbar.Add("Escala não foi salva. Houve um erro.", Severity.Error);
+
     }
     async Task LoadLocal()
     {
-        if (await localStorage.ContainKeyAsync("escala"))
+        var escalaData = await EscalaActions.Import();
+        if (escalaData != null)
         {
-            var escala = await localStorage.GetItemAsync<Utils.EscalaLocalData?>("escala");
-            if (escala != null)
-            {
+            UpdateEscala(escalaData);
+            Snackbar.Add("Escala carregada localmente com sucesso.", Severity.Success);
+            StateHasChanged();
 
-                Ano = escala.Ano;
-                Mes = escala.Mes;
-                MesSelected = escala.Mes;
-                var nomesLen = escala.Nomes.Length;
-                var escalaTipoLen = escalaTipos.Length;
-
-                for (int i = 0; i < nomesLen && i < escalaTipoLen; i++)
-                {
-                    escalaTipos[i] = escalaTipos[i] ?? new();
-                    escalaTipos[i].Names = escala.Nomes[i];
-                }
-                Generate(); // Re-generate week days based on loaded Month/Year
-                Snackbar.Add("Escala carregada localmente com sucesso.", Severity.Success);
-            }
-            else
-            {
-                Sabados = null;
-                Domingos = null;
-                Quartas = null;
-                Snackbar.Add("Nenhum dado de escala encontrado no armazenamento local.", Severity.Info);
-            }
-        } else {
+        }
+        else {
+            Sabados = null;
+            Domingos = null;
+            Quartas = null;
             Snackbar.Add("Nenhum dado de escala encontrado no armazenamento local.", Severity.Info);
         }
 
@@ -352,8 +365,6 @@
         var dialog2 = await DialogService.ShowAsync<Components.EscalaPeriodoView>("Visualização do período",
             parameters2,
             dialogoptions2);
-
-        // var dialogresult2 = await dialog2.Result; // No need to await if no special result handling is needed
     }
     async Task SelectPeriodo()
     {
@@ -398,7 +409,7 @@
         {
             Ano = Ano,
             Mes = (byte)MesSelected,
-            Nomes = escalaTipoNomes.ToArray()
+            Nomes = escalaTipoNomes.ToArray()!
         };
         var parameters = new DialogParameters<Components.ExportDataEscala> {
             { "escalaData", escalaData },
@@ -432,19 +443,11 @@
 
                 if (escalaLocalData != null)
                 {
-                    Ano = escalaLocalData.Ano;
-                    Mes = escalaLocalData.Mes;
-                    MesSelected = escalaLocalData.Mes;
-                    var nomesLen = escalaLocalData.Nomes.Length;
-                    var escalaTipoLen = escalaTipos.Length;
+                    UpdateEscala(escalaLocalData);
 
-                    for (int i = 0; i < nomesLen && i < escalaTipoLen; i++)
-                    {
-                        escalaTipos[i] = escalaTipos[i] ?? new(); // Garante que o objeto exista
-                        escalaTipos[i].Names = escalaLocalData.Nomes[i];
-                    }
-                    Generate(); // Regenerar os dias da semana com base no Mês/Ano carregado
                     Snackbar.Add("Dados de escala importados com sucesso!", Severity.Success);
+                    StateHasChanged();
+
                 }
                 else
                 {
@@ -486,5 +489,41 @@
         }
         Snackbar.Add("Todas as escalas foram limpas com sucesso.", Severity.Info);
         StateHasChanged(); // Notify Blazor to re-render the component with the cleared state
+    }
+
+    async Task CloudTools()
+    {
+
+        var escalaData = CanDisable() ? null : new Utils.EscalaLocalData
+        {
+            Ano = Ano,
+            Mes = (byte)MesSelected,
+            Nomes = escalaTipoNomes.ToArray()!
+        };
+        var dialogoptions = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium };
+        var parameters = new DialogParameters<Components.CloudEscalaTransfer>()
+        {
+
+            {(e) => e.EscalaLocalData, escalaData}
+        };
+        var dialog = await DialogService.ShowAsync<Components.CloudEscalaTransfer>("Ferramenta de cloud",
+            parameters,
+            dialogoptions);
+
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            var value = result.Data as Components.CloudEscalaTransfer.ReturnValue;
+            switch (value.TransferType)
+            {
+                case Components.CloudEscalaTransfer.TransferType.Read:
+                    if (value.value != null) {
+                        UpdateEscala((value.value as Utils.EscalaLocalData)!);
+                        StateHasChanged();
+                    }
+                    break;
+            }
+        }
+
     }
 }
