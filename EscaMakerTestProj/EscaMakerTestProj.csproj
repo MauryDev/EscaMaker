@@ -16,6 +16,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="itext" Version="9.4.0" />
+    <PackageReference Include="itext.bouncy-castle-adapter" Version="9.4.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
     <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.8.1" />

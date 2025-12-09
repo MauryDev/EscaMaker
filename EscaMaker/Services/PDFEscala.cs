@@ -15,7 +15,7 @@ public class PDFEscala
         modulePDF ??= await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/pdfEscala.js");
         return modulePDF;
     }
-    public async Task GeneratePDF(MemoryStream ms,string filename)
+    public async Task GeneratePDF(Stream ms,string filename)
     {
         // Call the JavaScript function to generate the PDF
         var module = await GetModule();

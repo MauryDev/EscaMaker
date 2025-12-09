@@ -14,8 +14,10 @@ builder.Services.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(build
 builder.Services.AddSingleton<EscaMaker.Services.PDFEscala>();
 builder.Services.AddSingleton<EscaMaker.Services.JsonExport>();
 builder.Services.AddSingleton<IEscalaDataTransferService,EscaMaker.Services.EscalaDataTransferService>();
-
 builder.Services.AddSingleton<EscaMaker.Services.AdminApiService>();
+builder.Services.AddTransient<EscaMaker.Services.EscalaPeriodoPdf>();
+builder.Services.AddTransient<EscaMaker.Services.EscalaPessoaPdf>();
+builder.Services.AddTransient<EscaMaker.Services.BackgroundEventHandler>();
 
 builder.Services.AddMudServices();
 builder.Services.AddBlazoredLocalStorageAsSingleton();

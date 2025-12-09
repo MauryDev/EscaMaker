@@ -1,0 +1,89 @@
+﻿<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Gerenciar Dados</MudText>
+    </TitleContent>
+
+    <DialogContent>
+        <MudStepper @bind-ActiveIndex="ActiveStep" ActionContent="(e) => null">
+            <MudStep Title="Etapa 1" SecondaryText="Modo">
+                <MudSelect T="View.ModeTransfer" @bind-Value="ModeTransfer" Label="Modo de transferência" Dense="true">
+                    <MudSelectItem Value="@View.ModeTransfer.None">
+                        Selecione uma opção
+
+                    </MudSelectItem>
+                    <MudSelectItem Value="@View.ModeTransfer.LocalStorage">
+                        <MudIcon Icon="@Icons.Material.Filled.Home" />
+                        <MudText Style="vertical-align: super;" Typo="Typo.caption" Align="Align.Center">LocalStorage</MudText>
+                    </MudSelectItem>
+                    <MudSelectItem Value="@View.ModeTransfer.File">
+                        <MudIcon Icon="@Icons.Material.Filled.FilePresent" />
+                        <MudText Style="vertical-align: super;" Typo="Typo.caption" Align="Align.Center">Arquivo</MudText>
+                    </MudSelectItem>
+                </MudSelect>
+
+                <div class="mt-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Next" Disabled="!IsModeSelected">Ok</MudButton>
+                </div>
+            </MudStep>
+
+            <MudStep Title="Etapa 2" SecondaryText="Ação">
+                <MudSelect T="View.ActionTransfer" @bind-Value="ActionTransfer" Label="Ação" Dense="true">
+                    <MudSelectItem Value="@View.ActionTransfer.None">
+                        Selecione uma opção
+
+                    </MudSelectItem>
+                    <MudSelectItem Value="@View.ActionTransfer.Load">
+                        <MudIcon Icon="@Icons.Material.Filled.Download" />
+                        <MudText Style="vertical-align: super;" Typo="Typo.caption" Align="Align.Center">Carregar</MudText>
+                        
+                    </MudSelectItem>
+                    <MudSelectItem Value="@View.ActionTransfer.Save" Disabled="!CanSave">
+                        <MudIcon Icon="@Icons.Material.Filled.Upload"/>
+                        <MudText Style="vertical-align: super;" Typo="Typo.caption" Align="Align.Center">Salvar</MudText>
+                    </MudSelectItem>
+                </MudSelect>
+
+                <div class="mt-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Next" Disabled="!IsActionSelected">Ok</MudButton>
+                </div>
+            </MudStep>
+
+            <MudStep Title="Etapa 3" SecondaryText="Finalização">
+                @switch (ModeTransfer)
+                {
+                    case View.ModeTransfer.LocalStorage:
+                        <EscaMaker.Pages.Components.TransferComponents.LocalStorageFinalize ActionTransfer="ActionTransfer" EscalaLocalData="EscalaLocalData" MudDialog="MudDialog" />
+                        break;
+                    case View.ModeTransfer.File:
+                        <EscaMaker.Pages.Components.TransferComponents.FileFinalize ActionTransfer="ActionTransfer" EscalaLocalData="EscalaLocalData" MudDialog="MudDialog" />
+                        break;
+                    default:
+                        <MudText Color="Color.Secondary">Esse texto não deveria aparecer.</MudText>
+                        break;
+                }
+            </MudStep>
+        </MudStepper>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel">Fechar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public required IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public Utils.EscalaLocalData? EscalaLocalData { get; set; }
+
+    public int ActiveStep { get; set; }
+
+    public View.ActionTransfer ActionTransfer { get; set; } = View.ActionTransfer.None;
+    public View.ModeTransfer ModeTransfer { get; set; } = View.ModeTransfer.None;
+
+    bool IsModeSelected => ModeTransfer != View.ModeTransfer.None;
+    bool IsActionSelected => ActionTransfer != View.ActionTransfer.None;
+    bool CanSave => EscalaLocalData is not null;
+
+    void Next() => ActiveStep = Math.Min(ActiveStep + 1, 2);
+
+    void Cancel() => MudDialog.Cancel();
+}

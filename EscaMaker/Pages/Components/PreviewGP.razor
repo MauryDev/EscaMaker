@@ -1,6 +1,8 @@
 ﻿@using ClipLazor.Components;
 @inject IClipLazor Clipboard
 @inject ISnackbar _snackbar
+@inject Services.EscalaPessoaPdf escalaPessoaPdf
+@inject Services.PDFEscala pDFEscala
 <MudCard Outlined="true" Elevation="4" Class="pa-3"> @* MudCard para um visual mais moderno e sombra *@
     <MudCardHeader>
         <MudText Typo="Typo.h6">Escala Individual</MudText>
@@ -29,7 +31,7 @@
     </MudCardContent>
     <MudCardActions Class="d-flex justify-end"> @* Ação de botões alinhada à direita *@
         <MudButton Class="mr-2" OnClick="OnClose" Variant="Variant.Text" Color="Color.Default">Fechar</MudButton> @* Estilo de botão "Fechar" mais discreto *@
-        <MudButton OnClick="CopyToClipboard" Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.ContentCopy">Copiar</MudButton> @* Botão "Copiar" com ícone e cor secundária *@
+        <MudButton OnClick="CopyToClipboard" Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Custom.FileFormats.FilePdf">Salvar (PDF)</MudButton> @* Botão "Copiar" com ícone e cor secundária *@
     </MudCardActions>
 </MudCard>
 
@@ -38,38 +40,34 @@
     public string? Nome { get; set; }
     [Parameter]
     public int Mes { get; set; }
+    [Parameter]
+    public int Ano { get; set; }
     public string? MesNome => Utils.DateTimeUtil.GetMesNome(Mes);
 
     [Parameter]
     public IEnumerable<(string? Name, byte Dia, string PersonName)>? DiasAndFuncao { get; set; }
     [Parameter]
-    public Action OnClose { get; set; } = () => { }; @* Inicializado para evitar null reference *@
+    public Action OnClose { get; set; } = () => { }; 
     async void CopyToClipboard()
     {
-        System.Text.StringBuilder stringBuilder = new();
-        stringBuilder.AppendLine($"Escala de {MesNome}");
-        stringBuilder.AppendLine($"Nome: {Nome}");
-        stringBuilder.AppendLine("---");
-
-        if (DiasAndFuncao != null)
-        {
-            var groupBy = DiasAndFuncao.GroupBy((e) => e.Dia).OrderBy(g => g.Key);
-
-            foreach (var groupDia in groupBy)
+        if (DiasAndFuncao == null || Nome == null)
+            return;
+        Dictionary<DateOnly, IEnumerable<string?>> dict = (from e in DiasAndFuncao
+            group e by e.Dia into g
+            select new
             {
-                var dia = groupDia.Key;
-                var diaSemana = Utils.DateTimeUtil.GetDiaSemanaNome(new DateTime(2025, Mes, dia).DayOfWeek);
-                stringBuilder.AppendLine($"{dia:D02}/{Mes:D02} - {diaSemana}");
-                foreach (var item in groupDia)
-                {
-                    stringBuilder.AppendLine($"- {item.Name}");
-                }
-                stringBuilder.AppendLine();
+                DayKey = g.Key,
+                Names = g.Select(e => e.Name)
+            })
+            .ToDictionary(
+                item => new DateOnly(Ano, Mes, item.DayKey),
+                item => item.Names
+            );
+        using var streamSource = escalaPessoaPdf.GeneratePDF(Nome!, Mes, dict!);
 
-            }
-        }
-        
-        await Clipboard.WriteTextAsync(stringBuilder.ToString().AsMemory());
-        _snackbar.Add("Conteúdo copiado para a área de transferência!", Severity.Success);
+
+        await pDFEscala.GeneratePDF(streamSource, "escala-pessoa.pdf");
+
+       
     }
 }

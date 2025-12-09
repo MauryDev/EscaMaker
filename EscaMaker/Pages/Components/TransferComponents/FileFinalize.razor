@@ -1,0 +1,150 @@
+﻿@inject Services.Contracts.IEscalaDataTransferService EscalaDataTransferService
+@inject ISnackbar Snackbar
+
+@if (ActionTransfer == View.ActionTransfer.Load)
+{
+    <MudStack Spacing="3">
+        <MudText>Selecione um arquivo JSON para importar os dados da escala.</MudText>
+
+        <MudFileUpload T="IBrowserFile"
+                       FilesChanged="OnFileUpload"
+                       Required="true"
+                       Accept=".json"
+                       Error="@_hasError">
+            <ActivatorContent>
+                <MudButton HtmlTag="label"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.FileUpload">
+                    Selecionar Arquivo
+                </MudButton>
+            </ActivatorContent>
+
+            <SelectedTemplate>
+                @if (_file is not null)
+                {
+                    <MudText><b>@_file.Name</b> <code>@_file.Size bytes</code></MudText>
+                }
+                else
+                {
+                    <MudText>Nenhum Arquivo</MudText>
+                }
+            </SelectedTemplate>
+        </MudFileUpload>
+
+        @if (_hasError)
+        {
+            <MudText Color="Color.Error" Typo="Typo.body2">Por favor, selecione um arquivo JSON válido.</MudText>
+        }
+    </MudStack>
+
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               Disabled="@(_isBusy || !_canExecuteLoad)"
+               OnClick="OnClickAsync">
+               @(_isBusy ? "Carregando..." : "Ok")
+    </MudButton>
+}
+else if (ActionTransfer == View.ActionTransfer.Save)
+{
+    <MudText>Deseja exportar os dados?</MudText>
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               Disabled="@(_isBusy || !_canExecuteSave)"
+               OnClick="OnClickAsync">
+        @(_isBusy ? "Salvando..." : "Sim")
+
+    </MudButton>
+}
+
+@code {
+    [Parameter] public View.ActionTransfer ActionTransfer { get; set; }
+    [Parameter] public required IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public Utils.EscalaLocalData? EscalaLocalData { get; set; }
+
+    private IBrowserFile? _file;
+    private bool _hasError;
+    private bool _isBusy;
+
+    private bool _canExecuteLoad => _file is not null;
+    private bool _canExecuteSave => EscalaLocalData is not null;
+
+    private void OnFileUpload(IBrowserFile file)
+    {
+        _file = file;
+        _hasError = false;
+    }
+
+    private (bool isValid, string? error) Validate()
+    {
+        if (_file is null)
+        {
+            _hasError = true;
+            return (false, "Por favor, selecione um arquivo.");
+        }
+
+        if (!_file.Name.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            _hasError = true;
+            return (false, "O arquivo deve ser do tipo JSON (.json).");
+        }
+
+        return (true, null);
+    }
+
+    private async Task OnClickAsync()
+    {
+        if (_isBusy)
+            return;
+
+        _isBusy = true;
+
+        try
+        {
+            var provider = EscalaDataTransferService.GetBrowserFileProvider(() => _file!);
+
+            switch (ActionTransfer)
+            {
+                case View.ActionTransfer.Load:
+                {
+                    var (isValid, error) = Validate();
+                    if (!isValid)
+                    {
+                        Snackbar.Add(error!, Severity.Error);
+                        return;
+                    }
+
+                    var data = await provider.Import();
+                    MudDialog.Close(DialogResult.Ok(data));
+                    break;
+                }
+
+                case View.ActionTransfer.Save:
+                {
+                    if (EscalaLocalData is null)
+                    {
+                        Snackbar.Add("Nenhum dado disponível para exportação.", Severity.Error);
+                        return;
+                    }
+
+                    var exportResult = await provider.Export(EscalaLocalData);
+                    MudDialog.Close(DialogResult.Ok(exportResult));
+                    break;
+                }
+
+                default:
+                    Snackbar.Add("Ação inválida.", Severity.Error);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro: {ex.Message}", Severity.Error);
+            Console.Error.WriteLine(ex);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+}

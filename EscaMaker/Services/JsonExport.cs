@@ -17,7 +17,6 @@ public class JsonExport
     }
     public async Task GenerateJSONFile(string data,string filename)
     {
-        // Call the JavaScript function to generate the PDF
         var module = await GetModule();
         using var ms = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(data));
         using var stream = new DotNetStreamReference(ms);

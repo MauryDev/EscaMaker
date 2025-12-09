@@ -1,4 +1,12 @@
 ﻿
+
+using iText.IO.Image;
+using iText.Kernel.Geom;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using iText.Layout.Properties;
+
 namespace EscaMakerTestProj
 {
     [TestClass]
@@ -59,6 +67,73 @@ namespace EscaMakerTestProj
             AssertList<byte>([6, 13, 20, 27], firstQuarta);
 
 
+        }
+
+        public static void CreateSimplePdf(string sourcePath, string outputPath, DateOnly dateOnly, List<(string, string)> values)
+        {
+            using var memoryStream = new FileStream(outputPath,FileMode.Create);
+            using var writer = new PdfWriter(memoryStream);
+            writer.SetCloseStream(false);
+            using PdfDocument pdfDoc = new(writer);
+            using Document doc = new(pdfDoc);
+
+            doc.SetMargins(30, 30, 30, 30);
+
+            ImageData imageData = ImageDataFactory.Create(sourcePath);
+            Image image = new(imageData);
+            var size = pdfDoc.GetDefaultPageSize();
+            var test = image.GetImageScaledHeight();
+            image.SetFixedPosition(0, 0);
+            image.ScaleAbsolute(size.GetWidth(),size.GetHeight());
+            doc.Add(image);
+
+            var paragraph = new Paragraph();
+            paragraph.Add(new Text("PROGRAMAÇÃO DE CULTO").SetFontSize(25f));
+            paragraph.SetMarginLeft(80f);
+            paragraph.SetTextAlignment(TextAlignment.CENTER);
+            doc.Add(paragraph);
+
+            var paragraph2 = new Paragraph();
+            paragraph2.Add(new Text($"{dateOnly.Day:D2}/{dateOnly.Month:D2} - {dateOnly:dddd}").SetFontSize(25f));
+            paragraph2.SetMarginLeft(80f);
+            paragraph2.SetMarginBottom(100f);
+
+            paragraph2.SetTextAlignment(TextAlignment.CENTER);
+            doc.Add(paragraph2);
+
+
+            foreach (var value in values)
+            {
+                var paragraphText = new Paragraph();
+                paragraphText.Add(new Text($"{value.Item1} - {value.Item2}").SetFontSize(25f));
+                paragraphText.SetMarginLeft(80f);
+                paragraphText.SetMarginBottom(20f);
+
+                doc.Add(paragraphText);
+
+            }
+
+
+            doc.Close();
+            memoryStream.Seek(0, SeekOrigin.Begin); // Reset the stream position to the beginning
+
+
+
+        }
+
+        [TestMethod]
+        public void CreatePDF()
+        {
+            string outputPath = "doc.pdf";
+            CreateSimplePdf("C:\\dev\\Visual Studio\\EscaMaker\\EscaMakerTestProj\\2151904440.jpg", outputPath, new DateOnly(2025, 12, 10), [
+                ("Ana Célia","Pregação"),
+                ("Manoel Santos", "Louvor Especial"),
+                ("Manoel Santos", "Recepção"),
+                ("Maria Da Lapa", "Sonoplastia"),
+                ("Maria José", "Momento Prévios"),
+                ("Maria José", "Programação"),
+                ("Teste", "Teste")
+            ]);
         }
     }
 }

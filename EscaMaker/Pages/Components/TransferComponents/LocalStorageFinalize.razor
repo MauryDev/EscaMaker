@@ -1,0 +1,25 @@
+﻿@inject Services.Contracts.IEscalaDataTransferService escalaDataTransferService
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnClick">Ok</MudButton>
+
+@code {
+    [Parameter]
+    public View.ActionTransfer actionTransfer { get; set; }
+    [Parameter]
+    public IMudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public Utils.EscalaLocalData? escalaLocalData { get; set; }
+    public async Task OnClick()
+    {
+        var escalaTransfer = escalaDataTransferService.GetLocalStorageProvider();
+        switch (actionTransfer)
+        {
+            case View.ActionTransfer.Load:
+                MudDialog.Close(await escalaTransfer.Import());
+                break;
+            case View.ActionTransfer.Save:
+                MudDialog.Close(await escalaTransfer.Export(escalaLocalData!));
+                break;
+        }
+    }
+}

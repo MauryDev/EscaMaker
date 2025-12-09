@@ -11,10 +11,17 @@ namespace EscaMaker.Utils
     {
         const int SizeFont1 = 15;
         const int SizeFont2 = 13;
+
+        static PdfFont? FontStd { get; set; }
+        static PdfFont GetPdfFont()
+        {
+            FontStd ??= PdfFontFactory.CreateFont(Resources.Resource.georgiaFont, "");
+            return FontStd;
+        }
         public static Paragraph CreateHeaderText(this string text)
         {
             var txt = new Text(text);
-            var font = PdfFontFactory.CreateFont(iText.IO.Font.Constants.StandardFonts.COURIER);
+            var font = GetPdfFont();
 
             txt.SetFont(font)
                 .SetFontSize(SizeFont2)
@@ -36,7 +43,7 @@ namespace EscaMaker.Utils
             if (mesNome != null)
             {
                 var txt = new Text($"Mês de {mesNome}");
-                var font = PdfFontFactory.CreateFont(iText.IO.Font.Constants.StandardFonts.COURIER);
+                var font = GetPdfFont();
 
                 txt.SetFont(font)
                     .SetFontSize(SizeFont1)

@@ -1,7 +1,8 @@
 ﻿@using ClipLazor.Components;
 @inject ISnackbar _snackbar
-
 @inject IClipLazor Clipboard
+@inject Services.EscalaPeriodoPdf escalaPeriodoPdf
+@inject Services.PDFEscala pDFEscala
 <MudDialog>
     <TitleContent>
         Visualização do período
@@ -44,7 +45,7 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="OnCopy" Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.ContentCopy">Copiar</MudButton>
+        <MudButton OnClick="OnSavePDF" Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Custom.FileFormats.FilePdf">Salvar (PDF)</MudButton>
         <MudButton OnClick="Cancel">Fechar</MudButton>
     </DialogActions>
 </MudDialog>
@@ -89,48 +90,36 @@
             .OrderBy(x => x));
     }
 
-    public async Task OnCopy()
+    public async Task OnSavePDF()
     {
-        System.Text.StringBuilder stringBuilder = new();
-        stringBuilder.AppendLine("Programação de culto");
-        stringBuilder.AppendLine("-------------");
 
-        // Usar FilteredResponsavelInfos para a cópia
+
         if (FilteredResponsavelInfos != null && FilteredResponsavelInfos.Any())
         {
-            var groupBy = FilteredResponsavelInfos.GroupBy((e) => e.dia).OrderBy(g => g.Key);
+            var groupByDia = FilteredResponsavelInfos.GroupBy((e) => e.dia);
 
-            foreach (var diaFuncoes in groupBy)
-            {
-                var dia = diaFuncoes.Key;
-                var diaSemana = Utils.DateTimeUtil.GetDiaSemanaNome(new DateTime(Date.Ano, Date.Mes, dia).DayOfWeek);
-                stringBuilder.AppendLine($"{dia:D02}/{Date.Mes:D02} - {diaSemana}");
-                stringBuilder.AppendLine();
+            var resultado = from e in groupByDia
+                            select (
+                                new DateOnly(Date.Ano, Date.Mes, e.Key),
+                                from item in e
+                                select (
+                                item.Nome,
+                                item.Escala
+                            )
+            );
 
-                foreach (var info in diaFuncoes.OrderBy(i => i.Nome)) // Ordena por nome na cópia também
-                {
-                    stringBuilder.AppendLine($"{info.Nome} - {info.Escala}");
 
-                }
-                stringBuilder.AppendLine();
-            }
+            using var streamSource = escalaPeriodoPdf.GeneratePDF(resultado);
+
+            await pDFEscala.GeneratePDF(streamSource,"escala-periodo.pdf");
         }
         else
         {
-            stringBuilder.AppendLine("Nenhuma informação para copiar com o filtro atual.");
         }
 
-        await Clipboard.WriteTextAsync(stringBuilder.ToString().AsMemory());
-        _snackbar.Add("Conteúdo copiado para a área de transferência!", Severity.Success);
 
     }
 
-
-    private void Submit()
-    {
-        // Este método pode ser removido se não houver lógica de submissão para esta view.
-        // Se for necessário para fechar, pode-se chamar MudDialog.Close(DialogResult.Ok(true));
-    }
 
     private void Cancel() => MudDialog.Cancel();
     public static List<(byte dia, string Nome, string Escala)> SelectByPeriodo(IEnumerable<View.EscalaTipoView> escalaTipo, int diaInicial, int diaFinal)
