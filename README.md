@@ -1,63 +1,92 @@
-# EscaMaker
+ï»¿# EscaMaker
 
-EscaMaker é uma aplicação Blazor WebAssembly robusta projetada para otimizar a criação e o gerenciamento de escalas de serviço. A ferramenta oferece aos usuários funcionalidades avançadas para geração, persistência, importação e exportação de escalas, além de recursos para pré-visualização em PDF e consultas detalhadas por indivíduo ou período.
+EscaMaker Ã© uma aplicaÃ§Ã£o Blazor WebAssembly robusta projetada para otimizar a criaÃ§Ã£o e o gerenciamento de escalas de serviÃ§o. A ferramenta oferece aos usuÃ¡rios funcionalidades avanÃ§adas para geraÃ§Ã£o, persistÃªncia, importaÃ§Ã£o e exportaÃ§Ã£o de escalas, alÃ©m de recursos para prÃ©-visualizaÃ§Ã£o em PDF e consultas detalhadas por indivÃ­duo ou perÃ­odo.
 
-## Visão Geral do Projeto
+## VisÃ£o Geral do Projeto
 
-O EscaMaker é desenvolvido sobre o framework Blazor WebAssembly no ecossistema .NET 10 (ou superior, C# 14), garantindo uma experiência de usuário rica e responsiva diretamente no navegador. Utiliza a biblioteca MudBlazor para uma interface de usuário moderna e acessível, Blazored.LocalStorage para persistência de dados no lado do cliente e aprimora a gestão de dados com uma integração API para autenticação e persistência remota utilizando iText para geração programática de documentos PDF.
+O EscaMaker Ã© desenvolvido sobre o framework Blazor WebAssembly no ecossistema .NET 10 (ou superior, C# 14), garantindo uma experiÃªncia de usuÃ¡rio rica e responsiva diretamente no navegador. Utiliza a biblioteca MudBlazor para uma interface de usuÃ¡rio moderna e acessÃ­vel, Blazored.LocalStorage para persistÃªncia de dados no lado do cliente e aprimora a gestÃ£o de dados com uma integraÃ§Ã£o API para autenticaÃ§Ã£o e persistÃªncia remota utilizando iText para geraÃ§Ã£o programÃ¡tica de documentos PDF.
 
 ### Principais Funcionalidades:
 
-*   **Autenticação e Persistência Remota**: Sistema de autenticação de usuário e capacidade de salvar/carregar dados de escalas de forma persistente em um backend através de uma API RESTful.
-*   **Geração Dinâmica de Escalas**: Crie escalas flexíveis baseadas no ano e mês selecionados, com a opção de gerar rapidamente a escala para o mês atual.
-*   **Gerenciamento de Dados Local**: Salve e recupere dados da escala de serviço diretamente do armazenamento local do navegador utilizando `Blazored.LocalStorage`.
+*   **AutenticaÃ§Ã£o e PersistÃªncia Remota**: Sistema de autenticaÃ§Ã£o de usuÃ¡rio e capacidade de salvar/carregar dados de escalas de forma persistente em um backend atravÃ©s de uma API RESTful.
+*   **GeraÃ§Ã£o DinÃ¢mica de Escalas**: Crie escalas flexÃ­veis baseadas no ano e mÃªs selecionados, com a opÃ§Ã£o de gerar rapidamente a escala para o mÃªs atual.
+*   **Gerenciamento de Dados Local**: Salve e recupere dados da escala de serviÃ§o diretamente do armazenamento local do navegador utilizando `Blazored.LocalStorage`.
 *   **Interoperabilidade JSON**: Importe e exporte dados de escala em formato JSON, facilitando o compartilhamento e backup entre sistemas.
-*   **Geração e Visualização de PDF**: Capacidade de gerar e pré-visualizar escalas completas ou individuais em formato PDF, com suporte para download.
-*   **Consulta Avançada de Escalas**: Filtre e visualize escalas por pessoa específica ou por um período definido, otimizando a análise e o acompanhamento.
-*   **Reinicialização de Escalas**: Funcionalidade para limpar todos os dados de escala atualmente carregados na interface, redefinindo os campos de entrada.
+*   **GeraÃ§Ã£o e VisualizaÃ§Ã£o de PDF**: Capacidade de gerar e prÃ©-visualizar escalas completas ou individuais em formato PDF, com suporte para download.
+*   **Consulta AvanÃ§ada de Escalas**: Filtre e visualize escalas por pessoa especÃ­fica ou por um perÃ­odo definido, otimizando a anÃ¡lise e o acompanhamento.
+*   **ReinicializaÃ§Ã£o de Escalas**: Funcionalidade para limpar todos os dados de escala atualmente carregados na interface, redefinindo os campos de entrada.
 
 ## Estrutura do Projeto
 
-A solução é organizada em projetos distintos para promover a separação de responsabilidades e facilitar a manutenção:
+A soluÃ§Ã£o Ã© organizada em projetos distintos para promover a separaÃ§Ã£o de responsabilidades e facilitar a manutenÃ§Ã£o:
 
-*   **`EscaMaker`**: O projeto principal Blazor WebAssembly, contendo a lógica da interface do usuário (UI), serviços do lado do cliente e utilitários.
-    *   `Layout`: Componentes Razor que definem a estrutura da aplicação para uma experiência de usuário consistente, como `MainLayout.razor` e `NavMenuMain.razor` (que agora inclui um link para a página de __Login__).
-    *   `Pages`: Componentes Razor de nível superior que representam as principais rotas da aplicação (ex: `Home.razor`, `EscalaGenerator.razor` para criação de escalas, e `Login.razor` para autenticação).
-    *   `Pages/Components`: Componentes Razor reutilizáveis, encapsulando funcionalidades específicas da UI para promover a modularidade (ex: `EscalaTipo`, `PreviewGP` para a visualização detalhada de escalas por pessoa, `EscalaPeriodoSelect`).
-    *   `Services`: Implementações de lógica de negócios e abstrações para interações externas (ex: `PDFEscala` para geração de PDF da escala completa, `EscalaPessoaPdf` para PDFs de escalas individuais, `JsonExport` para manipulação de JSON, e `APIService` para interações com o backend).
-    *   `Utils`: Classes utilitárias diversas para operações comuns (ex: `DateTimeUtil` para manipulação de datas, `GeneratePDF` para processos de criação de documentos PDF).
-    *   `View`: Classes de modelo de dados (DTOs - Data Transfer Objects) para a representação de dados na UI e para a comunicação com a API (ex: `EscalaTipoView`, `EscalaInfoPDF`, e classes relacionadas a DTOs de administração de API como `Login`, `LoginResponse`, `EscaMakerInfo`, `ApiResponse`, `DeleteResult`, `GetAllNamesResponseDTO`).
-*   **`EscaMakerTestProj`**: Projeto de testes de unidade dedicado à validação da lógica de negócios e das funções utilitárias da aplicação.
+*   **`EscaMaker`**: O projeto principal Blazor WebAssembly, contendo a lÃ³gica da interface do usuÃ¡rio (UI), serviÃ§os do lado do cliente e utilitÃ¡rios.
+    *   `Layout`: Componentes Razor que definem a estrutura da aplicaÃ§Ã£o para uma experiÃªncia de usuÃ¡rio consistente, como `MainLayout.razor` e `NavMenuMain.razor` (que agora inclui um link para a pÃ¡gina de __Login__).
+    *   `Pages`: Componentes Razor de nÃ­vel superior que representam as principais rotas da aplicaÃ§Ã£o (ex: `Home.razor`, `EscalaGenerator.razor` para criaÃ§Ã£o de escalas, e `Login.razor` para autenticaÃ§Ã£o).
+    *   `Pages/Components`: Componentes Razor reutilizÃ¡veis, encapsulando funcionalidades especÃ­ficas da UI para promover a modularidade (ex: `EscalaTipo`, `PreviewGP` para a visualizaÃ§Ã£o detalhada de escalas por pessoa, `EscalaPeriodoSelect`).
+    *   `Services`: ImplementaÃ§Ãµes de lÃ³gica de negÃ³cios e abstraÃ§Ãµes para interaÃ§Ãµes externas (ex: `PDFEscala` para geraÃ§Ã£o de PDF da escala completa, `EscalaPessoaPdf` para PDFs de escalas individuais, `JsonExport` para manipulaÃ§Ã£o de JSON, e `AdminApiService` para interaÃ§Ãµes com o backend).
+    *   `Utils`: Classes utilitÃ¡rias diversas para operaÃ§Ãµes comuns (ex: `DateTimeUtil` para manipulaÃ§Ã£o de datas, `GeneratePDF` para processos de criaÃ§Ã£o de documentos PDF).
+    *   `View`: Classes de modelo de dados (DTOs - Data Transfer Objects) para a representaÃ§Ã£o de dados na UI e para a comunicaÃ§Ã£o com a API (ex: `EscalaTipoView`, `EscalaInfoPDF`, e classes relacionadas a DTOs de administraÃ§Ã£o de API como `Login`, `LoginResponse`, `EscaMakerInfo`, `ApiResponse`, `DeleteResult`, `GetAllNamesResponseDTO`).
+*   **`EscaMakerTestProj`**: Projeto de testes de unidade dedicado Ã  validaÃ§Ã£o da lÃ³gica de negÃ³cios e das funÃ§Ãµes utilitÃ¡rias da aplicaÃ§Ã£o.
 
 ## Como Usar
 
-1.  **Configuração e Execução**: Abra a solução no Visual Studio 2022+ e inicie o projeto `EscaMaker`. A aplicação será executada no navegador.
-2.  **Autenticação (Opcional)**: Navegue até a página __Login__ (`/login`) para autenticar-se e acessar funcionalidades de persistência remota.
-3.  **Gerar Escalas**: Acesse a página "__Criar Escala__" (`/escala-create`), selecione o ano e o mês desejados e clique em "__Gerar Escala__" ou "__Gerar Mês Atual__" para inicializar a tabela de escala.
-4.  **Preenchimento da Escala**: Insira os nomes das pessoas nas células correspondentes da tabela de escala, atribuindo as funções aos dias.
-5.  **Persistência de Dados**:
-    *   **Localmente**: Utilize os botões "__Salvar Local__" e "__Carregar Local__" para persistir o estado da escala no armazenamento local do navegador.
-    *   **Remotamente (API)**: Após o login, utilize as opções para salvar ou carregar escalas do serviço de backend.
-6.  **Importação/Exportação JSON**: Use as funcionalidades "__Exportar Escalas__" e "__Importar Escalas__" para manipular dados de escala em formato JSON.
-7.  **Geração e Visualização PDF**: Clique em "__Download PDF__" para baixar a escala completa ou utilize a opção "__Pré-visualizar__" para visualizar a escala no navegador. Para escalas individuais, a pré-visualização e download em PDF são acessíveis através do componente `PreviewGP`.
-8.  **Consultas Específicas**: Em "Escalas por Pessoa" ou "Escalas por Período", realize consultas detalhadas para análise.
-9.  **Limpar Escalas**: O botão "__Limpar Escalas__" remove todos os dados da escala da interface, redefinindo os campos de ano e mês para os valores padrão e exibindo uma mensagem de instrução.
+1.  **ConfiguraÃ§Ã£o e ExecuÃ§Ã£o**: Abra a soluÃ§Ã£o no Visual Studio 2022+ e inicie o projeto `EscaMaker`. A aplicaÃ§Ã£o serÃ¡ executada no navegador.
+2.  **AutenticaÃ§Ã£o (Opcional)**: Navegue atÃ© a pÃ¡gina __Login__ (`/login`) para autenticar-se e acessar funcionalidades de persistÃªncia remota.
+3.  **Gerar Escalas**: Acesse a pÃ¡gina "__Criar Escala__" (`/escala-create`), selecione o ano e o mÃªs desejados e clique em "__Gerar Escala__" ou "__Gerar MÃªs Atual__" para inicializar a tabela de escala.
+4.  **Preenchimento da Escala**: Insira os nomes das pessoas nas cÃ©lulas correspondentes da tabela de escala, atribuindo as funÃ§Ãµes aos dias.
+5.  **PersistÃªncia de Dados**:
+    *   **Localmente**: Utilize os botÃµes "__Salvar Local__" e "__Carregar Local__" para persistir o estado da escala no armazenamento local do navegador.
+    *   **Remotamente (API)**: ApÃ³s o login, utilize as opÃ§Ãµes para salvar ou carregar escalas do serviÃ§o de backend.
+6.  **ImportaÃ§Ã£o/ExportaÃ§Ã£o JSON**: Use as funcionalidades "__Exportar Escalas__" e "__Importar Escalas__" para manipular dados de escala em formato JSON.
+7.  **GeraÃ§Ã£o e VisualizaÃ§Ã£o PDF**: Clique em "__Download PDF__" para baixar a escala completa ou utilize a opÃ§Ã£o "__PrÃ©-visualizar__" para visualizar a escala no navegador. Para escalas individuais, a prÃ©-visualizaÃ§Ã£o e download em PDF sÃ£o acessÃ­veis atravÃ©s do componente `PreviewGP`.
+8.  **Consultas EspecÃ­ficas**: Em "Escalas por Pessoa" ou "Escalas por PerÃ­odo", realize consultas detalhadas para anÃ¡lise.
+9.  **Limpar Escalas**: O botÃ£o "__Limpar Escalas__" remove todos os dados da escala da interface, redefinindo os campos de ano e mÃªs para os valores padrÃ£o e exibindo uma mensagem de instruÃ§Ã£o.
+
+## Status do Projeto
+
+### SituaÃ§Ã£o Atual (Janeiro de 2026)
+
+O projeto EscaMaker encontra-se em desenvolvimento ativo com foco em melhorias de experiÃªncia do usuÃ¡rio (UX/UI) e funcionalidades de autenticaÃ§Ã£o.
+
+### Implementado
+
+*   âœ… AutenticaÃ§Ã£o de usuÃ¡rio com sistema de tokens (`adminToken`)
+*   âœ… PÃ¡gina de login (`Login.razor`) com autenticaÃ§Ã£o via `AdminApiService`
+*   âœ… PersistÃªncia de dados em `localStorage` para manutenÃ§Ã£o de sessÃ£o
+*   âœ… IntegraÃ§Ã£o com API backend (`AdminApiService`)
+*   âœ… GeraÃ§Ã£o de escalas por ano e mÃªs
+*   âœ… ExportaÃ§Ã£o e importaÃ§Ã£o de dados em JSON
+*   âœ… GeraÃ§Ã£o de documentos PDF (escalas completas e individuais)
+*   âœ… Sistema de consultas por pessoa e perÃ­odo
+*   âœ… Componentes MudBlazor para interface moderna
+
+### Corrigido / Melhorado
+
+*   âœ… **UX/UI da PÃ¡gina de Login**: Implementado indicador visual de carregamento (`MudProgressCircular`) durante o processo de autenticaÃ§Ã£o
+*   âœ… **Ocultar FormulÃ¡rio During Loading**: O formulÃ¡rio Ã© ocultado enquanto o login estÃ¡ em processamento, exibindo um spinner com mensagem "Authenticating..."
+*   âœ… **Design Consistency**: FormulÃ¡rio envolvido em `MudPaper` para manter consistÃªncia visual com a pÃ¡gina de sessÃ£o ativa
+*   âœ… **Campo Icons**: Adicionados Ã­cones aos campos de username e password para melhor identificaÃ§Ã£o
+*   âœ… **Variant Update**: Campos de texto alterados para variante `Outlined` para aparÃªncia mais moderna
+*   âœ… **Button Layout**: BotÃ£o de login agora ocupa a largura total (`FullWidth`) para melhor usabilidade em dispositivos mÃ³veis
+*   âœ… **Alert Styling**: Alertas de erro com variante `Filled` para maior destaque
 
 ## Testes
 
-O projeto `EscaMakerTestProj` é fundamental para garantir a integridade e correção da aplicação, focando em testes de unidade.
+O projeto `EscaMakerTestProj` Ã© fundamental para garantir a integridade e correÃ§Ã£o da aplicaÃ§Ã£o, focando em testes de unidade.
 
 ### `Test1.cs`
 
-A classe `Test1` contém métodos para verificar a precisão das utilidades de manipulação de datas em `DateTimeUtil`, essenciais para a lógica de agendamento de escalas.
+A classe `Test1` contÃ©m mÃ©todos para verificar a precisÃ£o das utilidades de manipulaÃ§Ã£o de datas em `DateTimeUtil`, essenciais para a lÃ³gica de agendamento de escalas.
 
-*   **`FirstDayFromWeekDay(int mes, int ano, DayOfWeek dayOfWeek)`**: Esta função utilitária determina o primeiro dia do mês (como número do dia) em que um específico `DayOfWeek` ocorre.
-*   **`Days(int mes, int ano, DayOfWeek dayOfWeek)`**: Retorna uma lista (`IEnumerable<byte>`) de todos os dias do mês (números do dia) que correspondem a um determinado `DayOfWeek`.
-*   **`TestMethod1()`**: Este método de teste de unidade abrangente valida a exatidão das funções `Days` e `FirstDayFromWeekDay`. Ele emprega agosto de 2025 como caso de teste e verifica a correspondência dos dias calculados para sábados, domingos e quartas-feiras com conjuntos de valores esperados.
+*   **`FirstDayFromWeekDay(int mes, int ano, DayOfWeek dayOfWeek)`**: Esta funÃ§Ã£o utilitÃ¡ria determina o primeiro dia do mÃªs (como nÃºmero do dia) em que um especÃ­fico `DayOfWeek` ocorre.
+*   **`Days(int mes, int ano, DayOfWeek dayOfWeek)`**: Retorna uma lista (`IEnumerable<byte>`) de todos os dias do mÃªs (nÃºmeros do dia) que correspondem a um determinado `DayOfWeek`.
+*   **`TestMethod1()`**: Este mÃ©todo de teste de unidade abrangente valida a exatidÃ£o das funÃ§Ãµes `Days` e `FirstDayFromWeekDay`. Ele emprega agosto de 2025 como caso de teste e verifica a correspondÃªncia dos dias calculados para sÃ¡bados, domingos e quartas-feiras com conjuntos de valores esperados.
 
-    Exemplo de Asserções `TestMethod1` para Agosto de 2025:
-    *   **Sábados esperados**: 2, 9, 16, 23, 30.
+    Exemplo de AsserÃ§Ãµes `TestMethod1` para Agosto de 2025:
+    *   **SÃ¡bados esperados**: 2, 9, 16, 23, 30.
     *   **Domingos esperados**: 3, 10, 17, 24, 31.
     *   **Quartas-feiras esperadas**: 6, 13, 20, 27.
 
-Estes testes garantem que a lógica subjacente para a determinação dos dias de serviço na escala está funcionando conforme o esperado, o que é crucial para todo o sistema de agendamento de escalas.
+Estes testes garantem que a lÃ³gica subjacente para a determinaÃ§Ã£o dos dias de serviÃ§o na escala estÃ¡ funcionando conforme o esperado, o que Ã© crucial para todo o sistema de agendamento de escalas.
+

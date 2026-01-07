@@ -1,4 +1,5 @@
 ﻿@page "/escala-create"
+@using EscaMaker.Utils
 @inject Services.PDFEscala EscalaService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -21,7 +22,7 @@
             <MudItem xs="12" sm="6" md="4" lg="3">
                 <MudButtonGroup OverrideStyles="false" FullWidth Class="escalagenerator-button">
                     <MudButton Disabled="@IsEmpty" Color="Color.Primary" Variant="Variant.Filled" Class="escalagenerator-button" StartIcon="@Icons.Material.Filled.PlayArrow" OnClick="Generate">Gerar Escala</MudButton>
-                    <MudMenu Disabled="IsEmpty" FullWidth Color="Color.Primary" Variant="Variant.Filled" Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+                    <MudMenu FullWidth Color="Color.Primary" Variant="Variant.Filled" Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
                         <MudMenuItem OnClick="GenerateMesAtual" Icon="@Icons.Material.Filled.CalendarMonth">Mês Atual</MudMenuItem>
                         <MudMenuItem OnClick="GenerateMesProximo" Icon="@Icons.Material.Filled.CalendarMonth">Próximo Mês</MudMenuItem>
                     </MudMenu>
@@ -140,27 +141,24 @@
 
     private void Generate()
     {
-        
+
         if (_yearMonth.HasValue)
         {
             NoGenerated = false;
             MesSelected = _yearMonth?.Month ?? 1;
             AnoSelected = (_yearMonth?.Year) ?? 1;
-        } else
-        {
-            ShowSnackbar("Por favor, insira um mês e ano válidos para gerar a escala.", Severity.Error);
-
+            ShowSnackbar($"Escala gerada para {Utils.DateTimeUtil.GetMesNome(MesSelected)}/{AnoSelected}.", Severity.Success);
+            return;
         }
+        ShowSnackbar("Por favor, insira um mês e ano válidos para gerar a escala.", Severity.Error);
 
 
-        ShowSnackbar($"Escala gerada para {Utils.DateTimeUtil.GetMesNome(MesSelected)}/{AnoSelected}.", Severity.Success);
     }
 
     private void GenerateMesAtual()
     {
-        var now = DateTime.Now;
-        _yearMonth = new DateTime(now.Year, now.Month, 1);
-        
+        _yearMonth = DateTime.Now.ToFirstDayOfMonth();
+
 
         Generate();
         if (!IsScheduleEmpty)
@@ -170,8 +168,7 @@
 
     private void GenerateMesProximo()
     {
-        var next = DateTime.Now.AddMonths(1);
-        _yearMonth = new DateTime(next.Year, next.Month, 1);
+        _yearMonth = DateTime.Now.AddMonths(1).ToFirstDayOfMonth();
 
         Generate();
         if (!IsScheduleEmpty)

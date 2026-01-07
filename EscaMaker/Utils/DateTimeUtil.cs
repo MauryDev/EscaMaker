@@ -1,6 +1,6 @@
 ﻿namespace EscaMaker.Utils;
 
-public class DateTimeUtil
+public static class DateTimeUtil
 {
     static readonly string[] mesNomes = [
         "Janeiro",
@@ -67,5 +67,9 @@ public class DateTimeUtil
             DayOfWeek.Saturday => "Sábado",
             _ => "",
         };
+    }
+    public static DateTime ToFirstDayOfMonth(this DateTime date)
+    {
+        return new DateTime(date.Year, date.Month, 1);
     }
 }
