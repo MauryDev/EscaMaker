@@ -1,0 +1,62 @@
+﻿@using MudBlazor
+
+@* Componente para abstrair os itens de transferência (Carregar, Salvar, Deletar).
+   Garante consistência visual e reduz a repetição de código.
+*@
+
+<MudItem xs="4">
+    <div @onclick="HandleClick"
+         style="@(CanExecute ? "cursor: pointer;" : "cursor: not-allowed;")">
+
+        <MudPaper Elevation="@(IsSelected ? 12 : 2)"
+                  Class="@DisplayClass">
+
+            <MudIcon Icon="@Icon"
+                     Size="Size.Large"
+                     Class="mb-2"
+                     Color="@DisplayColor" />
+
+            <MudText Typo="Typo.button"
+                     Color="@DisplayColor">
+                @Label
+            </MudText>
+
+        </MudPaper>
+    </div>
+</MudItem>
+
+@code {
+    [Parameter] public View.ActionTransfer ActionValue { get; set; }
+    [Parameter] public View.ActionTransfer CurrentAction { get; set; }
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public string Icon { get; set; } = string.Empty;
+
+    [Parameter] public bool CanExecute { get; set; } = true;
+    [Parameter] public Color ActiveColor { get; set; } = Color.Inherit;
+
+    [Parameter] public EventCallback<View.ActionTransfer> OnSelected { get; set; }
+
+    private bool IsSelected => CurrentAction == ActionValue;
+
+    private string DisplayClass => GetActionClassV2(ActionValue, !CanExecute) ?? "";
+
+    private Color DisplayColor => CanExecute ? ActiveColor : Color.Default;
+
+    private async Task HandleClick()
+    {
+        if (CanExecute)
+        {
+            await OnSelected.InvokeAsync(ActionValue);
+        }
+    }
+    private string GetActionClassV2(View.ActionTransfer action, bool disabled = false)
+    {
+        if (disabled) return "pa-4 d-flex flex-column align-center mud-theme-dark lighten-4 opacity-50 cursor-not-allowed";
+
+        var baseClass = "pa-4 d-flex flex-column align-center cursor-pointer transition-all";
+        if (CurrentAction == action)
+            return $"{baseClass} border-solid border-2 border-primary mud-theme-primary lighten-5";
+
+        return $"{baseClass} hover:mud-elevation-8";
+    }
+}

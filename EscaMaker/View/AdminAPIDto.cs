@@ -2,46 +2,28 @@
 
 namespace EscaMaker.View;
 
-public class Login
-{
-    public string user { get; set; }
-    public string password { get; set; }
-}
+public record Login(string user, string password);
 
-public class LoginResponse
-{
-    public string token { get; set; }
-}
+public record LoginResponse(string token);
 
 public class EscaMakerInfo
 {
-    [JsonPropertyName(nameof(Nome))]
-    public string Nome { get; set; }
-    [JsonPropertyName(nameof(JSONData))]
-    public string JSONData { get; set; } // O conteúdo JSON a ser salvo
+    [JsonPropertyName("Nome")] public required string Nome { get; set; }
+    [JsonPropertyName("JSONData")] public required string JSONData { get;set; }
 }
+
 public class EscaMakerInfoWithId: EscaMakerInfo
 {
     public string _id { get; set; }
 }
 
-public class ApiResponse
-{
-    public EscaMakerInfoWithId? data { get; set; }
-}
-public class DeleteResult
-{
-    public bool isSuccess { get; set; }
-}
+public record ApiResponse(EscaMakerInfoWithId? data);
+public record DeleteResult(bool isSuccess);
 
-public class DeleteBody
-{
-    [JsonPropertyName(nameof(Nome))]
-    public string Nome { get; set; }
-}
+public record DeleteBody(
+    [property: JsonPropertyName("Nome")] string Nome
+);
 
-public class GetAllNamesResponseDTO
-{
-    [JsonPropertyName(nameof(Nomes))]
-    public string[] Nomes { get; set; }
-}
+public record GetAllNamesResponseDTO(
+    [property: JsonPropertyName("Nomes")] string[] Nomes
+);

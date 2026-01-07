@@ -1,8 +1,8 @@
 ﻿@using ClipLazor.Components;
 @inject ISnackbar _snackbar
 @inject IClipLazor Clipboard
-@inject Services.EscalaPeriodoPdf escalaPeriodoPdf
-@inject Services.PDFEscala pDFEscala
+@inject Services.SchedulePeriodPdf escalaPeriodoPdf
+@inject Services.PDFSchedule pDFEscala
 <MudDialog>
     <TitleContent>
         Visualização do período
@@ -52,7 +52,7 @@
 
 @code {
     [CascadingParameter]
-    private IMudDialogInstance MudDialog { get; set; }
+    private IMudDialogInstance MudDialog { get; set; } = null!;
     [Parameter]
     public (int Mes, int Ano) Date { get; set; }
     [Parameter]
@@ -122,13 +122,13 @@
 
 
     private void Cancel() => MudDialog.Cancel();
-    public static List<(byte dia, string Nome, string Escala)> SelectByPeriodo(IEnumerable<View.EscalaTipoView> escalaTipo, int diaInicial, int diaFinal)
+    public static List<(byte dia, string Nome, string Escala)> SelectByPeriodo(IEnumerable<View.ScheduleTypeView> escalaTipo, int diaInicial, int diaFinal)
     {
         var query =
         from escalaTipoCur in escalaTipo
 
             // Nível 2: 'Zip' os períodos (dias e nomes) para cada escala
-        from periodo in escalaTipoCur.Datas().Zip(escalaTipoCur.Names)
+        from periodo in escalaTipoCur.Dates().Zip(escalaTipoCur.Names)
 
             // Nível 3: 'Zip' os dias e nomes dentro de cada período
         from diaNome in periodo.First.Zip(periodo.Second)

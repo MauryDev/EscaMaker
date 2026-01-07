@@ -140,7 +140,7 @@
 @code {
     [Parameter] public View.ActionTransfer ActionTransfer { get; set; }
     [Parameter] public required IMudDialogInstance MudDialog { get; set; }
-    [Parameter] public EscalaLocalData? EscalaLocalData { get; set; }
+    [Parameter] public LocalScheduleData? EscalaLocalData { get; set; }
 
     public string Name { get; set; } = $"escala_backup_{DateTime.Now:yyyyMMdd}";
 

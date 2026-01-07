@@ -12,7 +12,7 @@
                     var idxcur = valuesInfo.Index;
                     var Dias = valuesInfo.Dias;
                     var NamesCur = Nomes[idxcur];
-					<EscalaDiaCollection Names="@NamesCur" Value="valuesInfo"/>
+					<ScheduleDayCollectionView Names="@NamesCur" Value="valuesInfo" />
                 }
             </MudExpansionPanels>
         }
@@ -20,13 +20,13 @@
 </MudCard>
 
 @code {
-	public Func<IEnumerable<IEnumerable<byte>>> Datas { get => EscalaTipo_View.Datas; }
+	public Func<IEnumerable<IEnumerable<byte>>> Datas { get => EscalaTipo_View.Dates; }
 
 	public string Nome { get => EscalaTipo_View?.Name!; }
-	public List<List<string>>? Nomes { get => EscalaTipo_View?.Names; set => EscalaTipo_View.Names = value; }
+	public List<List<string>> Nomes { get => EscalaTipo_View.Names!; set => EscalaTipo_View.Names = value; }
 
 	[Parameter]
-	public View.EscalaTipoView EscalaTipo_View { get; set; } = new View.EscalaTipoView(); @* Inicializado para evitar null reference *@
+	public required View.ScheduleTypeView EscalaTipo_View { get; set; } = new View.ScheduleTypeView(); @* Inicializado para evitar null reference *@
 	
 	protected override void OnInitialized()
 	{
@@ -77,7 +77,11 @@
 	IEnumerable<(int Index,IEnumerable<byte> Dias,string Header)> GetValues()
 	{
 		var _Datas = Datas().GetEnumerator();
-		var _Headers = this.EscalaTipo_View.Headers.GetEnumerator();
+		var _Headers = this.EscalaTipo_View.Headers?.GetEnumerator();
+		if (_Headers == null)
+		{
+			yield break;
+        }
 		var i = 0;
 		while (_Datas.MoveNext() && _Headers.MoveNext())
 		{

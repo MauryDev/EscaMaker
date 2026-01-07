@@ -1,6 +1,6 @@
 ﻿@page "/escala-create"
 @using EscaMaker.Utils
-@inject Services.PDFEscala EscalaService
+@inject Services.PDFSchedule EscalaService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
@@ -12,10 +12,7 @@
         <MudGrid Spacing="4">
             <MudItem xs="12" sm="6">
                 <MudDatePicker Label="Mês e Ano"  @bind-Date="_yearMonth" OpenTo="OpenTo.Year" FixDay="1" DateFormat="MM/yyyy" />
-
             </MudItem>
-
-            
         </MudGrid>
 
         <MudGrid Spacing="4" Class="mt-4">
@@ -23,8 +20,8 @@
                 <MudButtonGroup OverrideStyles="false" FullWidth Class="escalagenerator-button">
                     <MudButton Disabled="@IsEmpty" Color="Color.Primary" Variant="Variant.Filled" Class="escalagenerator-button" StartIcon="@Icons.Material.Filled.PlayArrow" OnClick="Generate">Gerar Escala</MudButton>
                     <MudMenu FullWidth Color="Color.Primary" Variant="Variant.Filled" Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
-                        <MudMenuItem OnClick="GenerateMesAtual" Icon="@Icons.Material.Filled.CalendarMonth">Mês Atual</MudMenuItem>
-                        <MudMenuItem OnClick="GenerateMesProximo" Icon="@Icons.Material.Filled.CalendarMonth">Próximo Mês</MudMenuItem>
+                        <MudMenuItem OnClick="GenerateCurrentMonth" Icon="@Icons.Material.Filled.CalendarMonth">Mês Atual</MudMenuItem>
+                        <MudMenuItem OnClick="GenerateNextMonth" Icon="@Icons.Material.Filled.CalendarMonth">Próximo Mês</MudMenuItem>
                     </MudMenu>
                 </MudButtonGroup>
             </MudItem>
@@ -49,7 +46,6 @@
                            Variant="Variant.Filled" Class="escalagenerator-button" Disabled="@IsScheduleEmpty"
                 OnClick="SelectPeriodo">Escalas por Período</MudButton>
             </MudItem>
-
 
             <MudItem xs="12" sm="6" md="4" lg="3">
                 <MudButton FullWidth Color="Color.Info" StartIcon="@Icons.Material.Filled.Source"
@@ -82,72 +78,68 @@
     }
     else
     {
-        <EscaMaker.Pages.Components.EscalasView escalaTipos="@escalaTipos" Mes="@MesSelected" />
+        <EscaMaker.Pages.Components.SchedulesView escalaTipos="@schedulesType" Mes="@selectedMonth" />
         
     }
 </MudContainer>
 
-
-
-
-    @code {
+@code {
     // State
-    public DateTime? _yearMonth { get; set; }
-    int MesSelected { get; set; } = 1;
-    int AnoSelected { get; set; } = 1;
+    DateTime? _yearMonth { get; set; }
+    int selectedMonth { get; set; } = 1;
+    int selectedYear { get; set; } = 1;
 
 
-    string Nome_PreviewGP { get; set; } = string.Empty;
-    IEnumerable<(string? Name, byte, string)>? DiasAndFuncao { get; set; }
+    IEnumerable<(string? Name, byte, string)>? DaysAndFunction { get; set; }
 
-    View.EscalaInfo[] escalasInfo;
-    bool NoGenerated = true;
-    private View.EscalaTipoView[] escalaTipos;
+    View.ScheduleInfo[] schedulesInfo { get; set; } = null!;
+    bool NoGenerated { get; set; } = true;
+    View.ScheduleTypeView[] schedulesType { get; set; } = null!;
 
     // Computed
-    private bool IsScheduleEmpty => NoGenerated;
-    public bool IsEmpty => !_yearMonth.HasValue;
+    bool IsScheduleEmpty => NoGenerated;
+    bool IsEmpty => !_yearMonth.HasValue;
 
-    private IEnumerable<List<List<string>>?> escalaTipoNomes
+    IEnumerable<List<List<string>>?> scheduleTypeNames
     {
         get
         {
-            return escalaTipos.Select(x => x.Names);
+            return schedulesType.Select(x => x.Names);
         }
     }
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        escalasInfo = View.EscalaInfo.LoadFromResource();
-        escalaTipos = new View.EscalaTipoView[escalasInfo.Length];
-        for (int i = 0; i < escalaTipos.Length; i++)
+        schedulesInfo = View.ScheduleInfo.LoadFromResource()!;
+        schedulesType = new View.ScheduleTypeView[schedulesInfo.Length];
+        for (int i = 0; i < schedulesType.Length; i++)
         {
-            var info = escalasInfo[i];
-            escalaTipos[i] = new View.EscalaTipoView
+            var info = schedulesInfo[i];
+            schedulesType[i] = new View.ScheduleTypeView
             {
                 Name = info.Name,
                 Headers = info.GetHeaders(),
-                Datas = GetDatas(info)
+                Dates = GetDates(info)
             };
         }
     }
 
-    private Func<IEnumerable<IEnumerable<byte>>> GetDatas(View.EscalaInfo escalaInfo) =>
-        () => escalaInfo.GetDatas(MesSelected, AnoSelected);
+    Func<IEnumerable<IEnumerable<byte>>> GetDates(View.ScheduleInfo scheduleInfo) =>
+        () => scheduleInfo.GetDates(selectedMonth, selectedYear);
 
 
-    private void ShowSnackbar(string message, Severity severity) => Snackbar.Add(message, severity);
+    void ShowSnackbar(string message, Severity severity) => Snackbar.Add(message, severity);
 
-    private void Generate()
+    void Generate()
     {
 
         if (_yearMonth.HasValue)
         {
             NoGenerated = false;
-            MesSelected = _yearMonth?.Month ?? 1;
-            AnoSelected = (_yearMonth?.Year) ?? 1;
-            ShowSnackbar($"Escala gerada para {Utils.DateTimeUtil.GetMesNome(MesSelected)}/{AnoSelected}.", Severity.Success);
+            selectedMonth = _yearMonth?.Month ?? 1;
+            selectedYear = (_yearMonth?.Year) ?? 1;
+            ShowSnackbar($"Escala gerada para {Utils.DateTimeUtil.GetMonthName(selectedMonth)}/{selectedYear}.", Severity.Success);
             return;
         }
         ShowSnackbar("Por favor, insira um mês e ano válidos para gerar a escala.", Severity.Error);
@@ -155,24 +147,24 @@
 
     }
 
-    private void GenerateMesAtual()
+    void GenerateCurrentMonth()
     {
         _yearMonth = DateTime.Now.ToFirstDayOfMonth();
 
 
         Generate();
         if (!IsScheduleEmpty)
-            ShowSnackbar($"Escala gerada para o mês atual ({Utils.DateTimeUtil.GetMesNome(MesSelected)})/{AnoSelected}.",
+            ShowSnackbar($"Escala gerada para o mês atual ({Utils.DateTimeUtil.GetMonthName(selectedMonth)})/{selectedYear}.",
             Severity.Success);
     }
 
-    private void GenerateMesProximo()
+    void GenerateNextMonth()
     {
         _yearMonth = DateTime.Now.AddMonths(1).ToFirstDayOfMonth();
 
         Generate();
         if (!IsScheduleEmpty)
-            ShowSnackbar($"Escala gerada para o próximo mês ({Utils.DateTimeUtil.GetMesNome(MesSelected)})/{AnoSelected}.",
+            ShowSnackbar($"Escala gerada para o próximo mês ({Utils.DateTimeUtil.GetMonthName(selectedMonth)})/{selectedYear}.",
             Severity.Success);
     }
 
@@ -180,8 +172,13 @@
     {
         try
         {
-            var bytes = Utils.GeneratePDF.GeneratePDFDocument(MesSelected, AnoSelected,
-                escalaTipoNomes, escalasInfo);
+            if (scheduleTypeNames == null || scheduleTypeNames == null)
+            {
+                ShowSnackbar("Nenhum dado de escala disponível para gerar o PDF.", Severity.Warning);
+                return;
+            }
+            var bytes = Utils.GeneratePDF.GeneratePDFDocument(selectedMonth, selectedYear,
+                scheduleTypeNames!, schedulesInfo);
 
             if (bytes == null)
             {
@@ -199,14 +196,19 @@
         }
     }
 
-    private async Task GeneratePreview()
+    async Task GeneratePreview()
     {
         string? lastPreviewUrl = null;
         try
         {
-            var bytes = Utils.GeneratePDF.GeneratePDFDocument(MesSelected, AnoSelected,
-                escalaTipoNomes, escalasInfo);
-            lastPreviewUrl = await EscalaService.GeneratePreview(bytes);
+            if (schedulesInfo == null || scheduleTypeNames == null)
+            {
+                ShowSnackbar("Nenhum dado de escala disponível para gerar a pré-visualização.", Severity.Warning);
+                return;
+            }
+            var bytes = await Task.Run(() => Utils.GeneratePDF.GeneratePDFDocument(selectedMonth, selectedYear,
+                scheduleTypeNames!, schedulesInfo));
+            lastPreviewUrl = await EscalaService.GeneratePreview(bytes!);
             var parameters = new DialogParameters { { "LastPreviewUrl", lastPreviewUrl } };
 
             var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
@@ -220,7 +222,7 @@
         }
     }
 
-    private async Task CleanupPreview(string? url)
+    async Task CleanupPreview(string? url)
     {
         if (!string.IsNullOrEmpty(url))
         {
@@ -228,46 +230,46 @@
         }
     }
 
-    private void UpdateEscala(View.EscalaLocalData escalaLocalData)
+    void UpdateSchedule(View.LocalScheduleData escalaLocalData)
     {
-        _yearMonth = new DateTime(escalaLocalData.Ano, escalaLocalData.Mes, 1);
-       
-        MesSelected = escalaLocalData.Mes;
-        AnoSelected = escalaLocalData.Ano;
-        var min = Math.Min(escalaLocalData.Nomes.Length, escalaTipos.Length);
+        _yearMonth = new DateTime(escalaLocalData.Year, escalaLocalData.Month, 1);
+
+        selectedMonth = escalaLocalData.Month;
+        selectedYear = escalaLocalData.Year;
+        var min = Math.Min(escalaLocalData.Names.Length, schedulesType.Length);
         for (int i = 0; i < min; i++)
         {
-            escalaTipos[i].Names = escalaLocalData.Nomes[i];
+            schedulesType[i].Names = escalaLocalData.Names[i];
         }
 
         Generate();
     }
-    void CreateEscala(View.EscalaLocalData escalaLocalData)
+    void CreateSchedule(View.LocalScheduleData escalaLocalData)
     {
-        _yearMonth = new DateTime(escalaLocalData.Ano, escalaLocalData.Mes, 1);
+        _yearMonth = new DateTime(escalaLocalData.Year, escalaLocalData.Month, 1);
 
-        MesSelected = escalaLocalData.Mes;
-        AnoSelected = escalaLocalData.Ano;
-        escalasInfo = escalaLocalData.EscalasInfo.Clone() as View.EscalaInfo[];
-        escalaTipos = escalaLocalData.Nomes.Zip(escalaLocalData.EscalasInfo).Select(e => new View.EscalaTipoView()
+        selectedMonth = escalaLocalData.Month;
+        selectedYear = escalaLocalData.Year;
+        schedulesInfo = escalaLocalData.SchedulesInfo.Clone() as View.ScheduleInfo[];
+        schedulesType = escalaLocalData.Names.Zip(escalaLocalData.SchedulesInfo).Select(e => new View.ScheduleTypeView()
         {
             Names = e.First,
-            Datas = GetDatas(e.Second),
+            Dates = GetDates(e.Second),
             Headers = e.Second.GetHeaders(),
         }).ToArray();
 
         Generate();
     }
 
-    private async Task GenerateInfo()
+    async Task GenerateInfo()
     {
 
         var parameters = new DialogParameters<Components.Preview.EPStepper>
         {
-            {(e) => e.Names, Components.Preview.EPSelectName.GetPersonNomesEscala(escalaTipos) },
-            {(e) => e.Mes, MesSelected },
-            {(e) => e.Ano, AnoSelected },
-            {(e) => e.EscalaTipos, escalaTipos }
+            {(e) => e.Names, Components.Preview.EPSelectName.GetPersonNomesEscala(schedulesType) },
+            {(e) => e.Month, selectedMonth },
+            {(e) => e.Year, selectedYear },
+            {(e) => e.EscalaTipos, schedulesType }
         };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
         await DialogService.ShowAsync<Components.Preview.EPStepper>("Seleciona Nome", parameters, options);
@@ -276,32 +278,32 @@
 
 
 
-    private async Task OpenPeriodoView(int diaInicial, int diaFinal)
+    async Task OpenPeriodoView(int diaInicial, int diaFinal)
     {
-        var responsavelInfos = Components.EscalaPeriodoView.SelectByPeriodo(escalaTipos, diaInicial, diaFinal);
-        var parameters = new DialogParameters<Components.EscalaPeriodoView>
+        var responsavelInfos = Components.SchedulePeriodView.SelectByPeriodo(schedulesType, diaInicial, diaFinal);
+        var parameters = new DialogParameters<Components.SchedulePeriodView>
         {
-            { "responsavelInfos", responsavelInfos },
-            { "Date", (MesSelected, AnoSelected) }
+            { e => e.responsavelInfos, responsavelInfos },
+            { e => e.Date, (selectedMonth, selectedYear) }
         };
 
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
-        await DialogService.ShowAsync<Components.EscalaPeriodoView>("Visualização do período", parameters, options);
+        await DialogService.ShowAsync<Components.SchedulePeriodView>("Visualização do período", parameters, options);
     }
 
-    private async Task SelectPeriodo()
+    async Task SelectPeriodo()
     {
-        var parameters = new DialogParameters<Components.EscalaPeriodoSelect>
+        var parameters = new DialogParameters<Components.SchedulePeriodSelect>
         {
-            { "Mes", MesSelected },
-            { "Ano", AnoSelected }
+            { e => e.Mes, selectedMonth },
+            { e => e.Ano, selectedYear }
         };
 
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium };
-        var dialog = await DialogService.ShowAsync<Components.EscalaPeriodoSelect>("Seleção de período", parameters, options);
+        var dialog = await DialogService.ShowAsync<Components.SchedulePeriodSelect>("Seleção de período", parameters, options);
         var result = await dialog.Result;
 
-        if (result.Canceled)
+        if (result?.Canceled ?? true)
         {
             ShowSnackbar("Seleção de período cancelada.", Severity.Info);
             return;
@@ -310,19 +312,17 @@
         if (result.Data is int dia)
         {
             await OpenPeriodoView(dia, dia);
-            ShowSnackbar($"Visualizando escala para o dia {dia:D02}/{MesSelected:D02}.", Severity.Success);
+            ShowSnackbar($"Visualizando escala para o dia {dia:D02}/{selectedMonth:D02}.", Severity.Success);
         }
         else if (result.Data is ValueTuple<int, int> span)
         {
             await OpenPeriodoView(span.Item1, span.Item2);
-            ShowSnackbar($"Visualizando escala para o período de {span.Item1:D02} a {span.Item2:D02}/{MesSelected:D02}.",
+            ShowSnackbar($"Visualizando escala para o período de {span.Item1:D02} a {span.Item2:D02}/{selectedMonth:D02}.",
             Severity.Success);
         }
     }
 
-
-
-    private async Task ClearSchedulesAsync()
+    async Task ClearSchedulesAsync()
     {
         bool? result = await DialogService.ShowMessageBox(
             "Confirmar Exclusão",
@@ -331,7 +331,7 @@
 
         if (result == true)
         {
-            foreach (var tipo in escalaTipos)
+            foreach (var tipo in schedulesType)
             {
                 tipo.Clear();
             }
@@ -341,23 +341,25 @@
 
 
 
-    public async Task SelectEscalaTransfer()
+    async Task SelectEscalaTransfer()
     {
-        var escalaData = IsScheduleEmpty ? null : new View.EscalaLocalData
+        var escalaData = IsScheduleEmpty ? null : new View.LocalScheduleData
         {
-            Ano = AnoSelected,
-            Mes = (byte)MesSelected,
-            Nomes = escalaTipoNomes.ToArray()!,
-            EscalasInfo = escalasInfo.Clone() as View.EscalaInfo[]
+            Year = selectedYear,
+            Month = (byte)selectedMonth,
+            Names = scheduleTypeNames.ToArray()!,
+            SchedulesInfo = schedulesInfo.Clone() as View.ScheduleInfo[]
         };
 
-        var parameters = new DialogParameters { { "escalaLocalData", escalaData } };
+        var parameters = new DialogParameters<Components.TransferSelect> {
+            { e => e.EscalaLocalData, escalaData }
+        };
         var dialog = await DialogService.ShowAsync<Components.TransferSelect>("", parameters);
         var result = await dialog.Result;
 
-        if (!(result?.Canceled ?? true) && result.Data is View.EscalaLocalData data)
+        if (!(result?.Canceled ?? true) && result.Data is View.LocalScheduleData data)
         {
-            UpdateEscala(data);
+            UpdateSchedule(data);
         }
     }
 }

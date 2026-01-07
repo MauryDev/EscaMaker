@@ -7,7 +7,7 @@ using iText.Kernel.Pdf.Xobject;
 
 namespace EscaMaker.Services;
 
-public class BackgroundEventHandler : AbstractPdfDocumentEventHandler
+public class BackgroundEventHandlerPDF : AbstractPdfDocumentEventHandler
 {
     protected ImageData? Image;
 

@@ -1,11 +1,11 @@
 ﻿@using ClipLazor.Components;
 @inject IClipLazor Clipboard
 @inject ISnackbar _snackbar
-@inject Services.EscalaPessoaPdf escalaPessoaPdf
-@inject Services.PDFEscala pDFEscala
+@inject Services.SchedulePersonPdf escalaPessoaPdf
+@inject Services.PDFSchedule pDFEscala
 
 
-<MudCard Outlined="true" Elevation="4" Class="pa-3">
+<MudCard Outlined="true" Elevation="4" Class="pa-1">
     <MudCardHeader>
         <MudText Typo="Typo.h6">Escala Individual</MudText>
     </MudCardHeader>
@@ -17,7 +17,7 @@
 
             <MudTable Items="@DiasAndFuncao" Dense="true" Hover="true" Bordered="false" Striped="true">
                 <HeaderContent>
-                    <MudTh Style="width: 50px">Dia</MudTh>
+                    <MudTh Style="width: 40px">Dia</MudTh>
                     <MudTh>Função</MudTh>
                 </HeaderContent>
                 <RowTemplate>
@@ -47,7 +47,7 @@
     public int Ano { get; set; }
     [Parameter]
     public bool Disabled { get; set; }
-    public string? MesNome => Utils.DateTimeUtil.GetMesNome(Mes);
+    public string? MesNome => Utils.DateTimeUtil.GetMonthName(Mes);
 
     [Parameter]
     public IEnumerable<(string? Name, byte Dia, string PersonName)>? DiasAndFuncao { get; set; }

@@ -11,7 +11,7 @@
 
 @code {
     [CascadingParameter]
-    public IMudDialogInstance MudDialog { get; set; }
+    public IMudDialogInstance MudDialog { get; set; } = null!;
     [Parameter]
     public string LastPreviewUrl { get; set; } = string.Empty;
     void ClosePreview()

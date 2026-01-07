@@ -7,7 +7,7 @@
 			<MudTh>Nome</MudTh>
 		</HeaderContent>
 		<RowTemplate>
-			<EscalaDia @bind-Name="Names[context.Index]" Dia="@context.Dia" />
+			<ScheduleDay @bind-Name="Names[context.Index]" Dia="@context.Dia" />
 		</RowTemplate>
 	</MudTable>
 </MudExpansionPanel>
@@ -16,6 +16,6 @@
 	[Parameter]
 	public (int Index, IEnumerable<byte> Dias, string Header) Value { get; set; }
 	[Parameter]
-	public List<string> Names { get; set; }
+	public required List<string> Names { get; set; }
 	public IEnumerable<(byte Dia, int Index)> DiasIndex => Value.Dias.Select((dia, idx) => (dia, idx));
 }

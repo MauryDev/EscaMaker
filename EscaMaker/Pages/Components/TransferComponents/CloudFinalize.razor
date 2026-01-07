@@ -105,7 +105,7 @@
     public IMudDialogInstance MudDialog { get; set; }
 
     [Parameter]
-    public EscalaLocalData? EscalaLocalData { get; set; }
+    public LocalScheduleData? EscalaLocalData { get; set; }
 
     [Parameter]
     public View.ActionTransfer ActionTransfer { get; set; }
@@ -113,7 +113,7 @@
     private string CloudResourceName { get; set; } = string.Empty;
     private string[]? _cloudResourceNames;
     private bool _isBusy;
-    private IEscalaTransfer _cloudProvider;
+    private IScheduleTransfer _cloudProvider { get; set; } = null!;
 
     private Color GetButtonColor() => ActionTransfer == View.ActionTransfer.Delete ? Color.Error : Color.Primary;
 

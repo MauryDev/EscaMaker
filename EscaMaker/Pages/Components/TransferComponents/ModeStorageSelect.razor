@@ -1,0 +1,85 @@
+﻿@using MudBlazor
+@typeparam TValue
+
+@* Componente: TransferSelectionCard
+    Abstração genérica para cards de seleção (Ações ou Modos).
+    Suporta títulos, descrições, ícones coloridos e estados de seleção com bordas.
+*@
+
+<MudItem xs="@Xs" sm="@Sm">
+    <div @onclick="HandleClick"
+         class="@(CanExecute ? "cursor-pointer" : "cursor-not-allowed")">
+
+        <MudPaper Elevation="@(IsSelected ? 12 : 2)"
+                  Class="@ComputedClass">
+
+            <MudIcon Icon="@Icon"
+                     Size="Size.Large"
+                     Class="@(string.IsNullOrEmpty(Description) ? "mb-2" : "mb-3")"
+                     Color="@ComputedColor" />
+
+            <MudText Typo="@(string.IsNullOrEmpty(Description) ? Typo.button : Typo.h6)">
+                @Label
+            </MudText>
+
+            @if (!string.IsNullOrEmpty(Description))
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center">
+                    @Description
+                </MudText>
+            }
+
+        </MudPaper>
+    </div>
+</MudItem>
+
+@code {
+    // Valor genérico (pode ser View.ActionTransfer ou View.ModeTransfer)
+    [Parameter] public TValue? Value { get; set; }
+    [Parameter] public TValue? CurrentValue { get; set; }
+
+    // Conteúdo
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string Icon { get; set; } = string.Empty;
+
+    // Configurações de Grid
+    [Parameter] public int Xs { get; set; } = 4;
+    [Parameter] public int Sm { get; set; } = 4;
+
+    // Estado e Estilo
+    [Parameter] public bool CanExecute { get; set; } = true;
+    [Parameter] public Color ActiveColor { get; set; } = Color.Inherit;
+
+    // Evento disparado ao clicar
+    [Parameter] public EventCallback<TValue> OnSelected { get; set; }
+
+    // Customização de classe CSS
+    [Parameter] public string? Class { get; set; }
+
+    private bool IsSelected => Equals(Value, CurrentValue);
+
+    private Color ComputedColor => CanExecute ? (IsSelected && ActiveColor == Color.Inherit ? Color.Primary : ActiveColor) : Color.Default;
+
+    private string ComputedClass
+    {
+        get
+        {
+            var baseClass = string.IsNullOrEmpty(Description)
+                ? "pa-4 d-flex flex-column align-center"
+                : "pa-6 d-flex flex-column align-center";
+
+            var selectionClass = IsSelected ? "border-solid border-2 border-primary" : "";
+
+            return $"{baseClass} {selectionClass} {Class}";
+        }
+    }
+
+    private async Task HandleClick()
+    {
+        if (CanExecute && Value != null)
+        {
+            await OnSelected.InvokeAsync(Value);
+        }
+    }
+}

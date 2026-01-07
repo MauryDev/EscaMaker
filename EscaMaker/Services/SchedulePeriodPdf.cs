@@ -8,7 +8,7 @@ using iText.Layout.Properties;
 
 namespace EscaMaker.Services;
 
-public class EscalaPeriodoPdf
+public class SchedulePeriodPdf
 {
     const float TitleFontSize = 35f;
     const float DayFontSize = 25f;
@@ -19,8 +19,8 @@ public class EscalaPeriodoPdf
     const float PageMargin = 30f;
     PdfFont? FontStd { get; set; }
     Document? DocumentCurrent { get; set; }
-    BackgroundEventHandler EventHandler { get; set; }
-    public EscalaPeriodoPdf(BackgroundEventHandler backgroundEventHandler)
+    BackgroundEventHandlerPDF EventHandler { get; set; }
+    public SchedulePeriodPdf(BackgroundEventHandlerPDF backgroundEventHandler)
     {
         this.EventHandler = backgroundEventHandler;
     }
@@ -51,7 +51,7 @@ public class EscalaPeriodoPdf
         AddFullPageBackgroundImage(imageBytes);
 
         var firstPage = true;
-        foreach (var day in schedule)
+        foreach (var (date, items) in schedule)
         {
             if (!firstPage)
                 DocumentCurrent.Add(new AreaBreak(AreaBreakType.NEXT_PAGE));
@@ -59,9 +59,9 @@ public class EscalaPeriodoPdf
             firstPage = false;
 
             AddTitle("PROGRAMAÇÃO DE CULTO");
-            AddDayInfo(day.Date);
+            AddDayInfo(date);
 
-            foreach (var (name, role) in day.Items)
+            foreach (var (name, role) in items)
                 AddEntry(name, role);
         }
         ((IDisposable)DocumentCurrent).Dispose();
@@ -72,9 +72,9 @@ public class EscalaPeriodoPdf
     {
         var imageData = ImageDataFactory.Create(imageBytes);
 
-        var pdf = DocumentCurrent.GetPdfDocument();
+        var pdf = DocumentCurrent?.GetPdfDocument();
         EventHandler.Init(imageData);
-        pdf.AddEventHandler(PdfDocumentEvent.INSERT_PAGE, EventHandler);
+        pdf?.AddEventHandler(PdfDocumentEvent.INSERT_PAGE, EventHandler);
     }
 
     void AddTitle(string text)
@@ -87,7 +87,7 @@ public class EscalaPeriodoPdf
             .SetFont(font)
             .SetMarginLeft(LeftMargin);
 
-        DocumentCurrent.Add(p);
+        DocumentCurrent?.Add(p);
     }
 
     void AddDayInfo(DateOnly date)
@@ -104,7 +104,7 @@ public class EscalaPeriodoPdf
             .SetFont(font)
             .SetMarginBottom(DayBottomSpacing);
 
-        DocumentCurrent.Add(p);
+        DocumentCurrent?.Add(p);
     }
 
     void AddEntry(string name, string role)
@@ -118,6 +118,6 @@ public class EscalaPeriodoPdf
             .SetFont(font)
             .SetMarginBottom(EntryBottomSpacing);
 
-        DocumentCurrent.Add(p);
+        DocumentCurrent?.Add(p);
     }
 }

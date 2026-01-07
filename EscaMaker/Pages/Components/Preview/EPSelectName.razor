@@ -1,4 +1,4 @@
-﻿<MudCard Outlined="true" Elevation="4" Class="pa-3">
+﻿<MudCard Outlined="true" Elevation="4" Class="pa-1">
     <MudCardHeader>
         <MudText Typo="Typo.h6">Buscar Escala por Pessoa</MudText>
     </MudCardHeader>
@@ -24,14 +24,14 @@
 
 
     [Parameter]
-    public List<string> Names { get; set; }
+    public required List<string> Names { get; set; }
 
     public async Task<IEnumerable<string>> SearchNames(string value,CancellationToken token)
     {
         return Names.Where(n => n.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
    
-    public static List<string> GetPersonNomesEscala(IEnumerable<View.EscalaTipoView> escalaTipoView)
+    public static List<string> GetPersonNomesEscala(IEnumerable<View.ScheduleTypeView> escalaTipoView)
     {
         var query =
             from escala in escalaTipoView

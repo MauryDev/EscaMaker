@@ -5,15 +5,15 @@
     @foreach (var escalatipo in escalaTipos)
     {
         <MudItem xs="12" sm="6" md="4">
-            <EscaMaker.Pages.Components.EscalaTipo EscalaTipo_View="@escalatipo" />
+            <EscaMaker.Pages.Components.ScheduleTypeView EscalaTipo_View="@escalatipo" />
         </MudItem>
     }
 </MudGrid>
 @code {
     [Parameter]
-    public IEnumerable<View.EscalaTipoView> escalaTipos { get; set; }
+    public required IEnumerable<View.ScheduleTypeView> escalaTipos { get; set; }
     [Parameter]
     public int Mes { get; set; }
-    private string GetMesName() => Utils.DateTimeUtil.GetMesNome(Mes);
+    private string? GetMesName() => Utils.DateTimeUtil.GetMonthName(Mes);
 
 }

@@ -1,6 +1,7 @@
 using Blazored.LocalStorage;
 using ClipLazor.Extention;
 using EscaMaker;
+using EscaMaker.Services;
 using EscaMaker.Services.Contracts;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -11,13 +12,14 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-builder.Services.AddSingleton<EscaMaker.Services.PDFEscala>();
+builder.Services.AddSingleton<EscaMaker.Services.PDFSchedule>();
 builder.Services.AddSingleton<EscaMaker.Services.JsonExport>();
-builder.Services.AddSingleton<IEscalaDataTransferService,EscaMaker.Services.EscalaDataTransferService>();
+builder.Services.AddSingleton<IEscalaDataTransferService,EscaMaker.Services.ScheduleDataTransferService>();
 builder.Services.AddSingleton<EscaMaker.Services.AdminApiService>();
-builder.Services.AddTransient<EscaMaker.Services.EscalaPeriodoPdf>();
-builder.Services.AddTransient<EscaMaker.Services.EscalaPessoaPdf>();
-builder.Services.AddTransient<EscaMaker.Services.BackgroundEventHandler>();
+builder.Services.AddTransient<EscaMaker.Services.SchedulePeriodPdf>();
+builder.Services.AddTransient<EscaMaker.Services.SchedulePersonPdf>();
+
+builder.Services.AddTransient<BackgroundEventHandlerPDF>();
 
 builder.Services.AddMudServices();
 builder.Services.AddBlazoredLocalStorageAsSingleton();

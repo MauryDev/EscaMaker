@@ -2,11 +2,11 @@
 
 namespace EscaMaker.Services;
 
-public class PDFEscala
+public class PDFSchedule
 {
     private readonly IJSRuntime _jsRuntime;
     IJSObjectReference? modulePDF;
-    public PDFEscala(IJSRuntime jsRuntime)
+    public PDFSchedule(IJSRuntime jsRuntime)
     {
         _jsRuntime = jsRuntime;
     }

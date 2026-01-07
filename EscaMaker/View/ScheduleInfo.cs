@@ -4,9 +4,9 @@ using System.Text.Json.Serialization;
 
 namespace EscaMaker.View;
 
-public class EscalaInfo
+public class ScheduleInfo
 {
-    public enum DiasType
+    public enum DaysType
     {
         SDQ,
         DQ,
@@ -14,30 +14,30 @@ public class EscalaInfo
         DQSx
     }
     static string[] Headers = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado",];
-    static Dictionary<DiasType, byte[]> HeadersEscalaType = new()
+    static Dictionary<DaysType, byte[]> HeadersEscalaType = new()
     {
-        {DiasType.S, [6] },
-        {DiasType.DQ, [0,3] },
-        {DiasType.SDQ, [6,0,3] },
-        {DiasType.DQSx, [0, 3,5] }
+        {DaysType.S, [6] },
+        {DaysType.DQ, [0,3] },
+        {DaysType.SDQ, [6,0,3] },
+        {DaysType.DQSx, [0, 3,5] }
     };
 
     public string Name { get; set; }
-    public DiasType diasType { get; set; }
+    public DaysType daysType { get; set; }
    
-    public EscalaInfo(string name, DiasType diasType)
+    public ScheduleInfo(string name, DaysType daysType)
     {
         
         this.Name = name;
-        this.diasType = diasType;
+        this.daysType = daysType;
     }
 
     public IEnumerable<string> GetHeaders()
     {
-        return GetHeaders(this.diasType);
+        return GetHeaders(this.daysType);
     }
 
-    public static IEnumerable<string> GetHeaders(DiasType diasType)
+    public static IEnumerable<string> GetHeaders(DaysType diasType)
     {
         if (HeadersEscalaType.TryGetValue(diasType, out var dias))
         {
@@ -49,13 +49,13 @@ public class EscalaInfo
         }
     }
 
-    public IEnumerable<IEnumerable<byte>> GetDatas(int month, int year)
+    public IEnumerable<IEnumerable<byte>> GetDates(int month, int year)
     {
-        return GetDatas(this.diasType, month,year);
+        return GetDatas(this.daysType, month,year);
     }
 
    
-    public static IEnumerable<IEnumerable<byte>> GetDatas(DiasType diasType,int month, int year)
+    public static IEnumerable<IEnumerable<byte>> GetDatas(DaysType diasType,int month, int year)
     {
         var dateonly = new DateOnly(year, month, 1);
         if (HeadersEscalaType.TryGetValue(diasType, out var dias))
@@ -65,11 +65,11 @@ public class EscalaInfo
         return [];
     }
 
-    public static EscalaInfo[]? LoadFromResource()
+    public static ScheduleInfo[]? LoadFromResource()
     {
         var escalaInfos = Resources.Resource.escalaInfos;
-        
-        return JsonSerializer.Deserialize<EscalaInfo[]>(escalaInfos, JsonEnumString.GetOptions());
+        Console.WriteLine(escalaInfos);
+        return JsonSerializer.Deserialize<ScheduleInfo[]>(escalaInfos, JsonEnumString.GetOptions());
 
     }
 

@@ -39,10 +39,10 @@ namespace EscaMaker.Utils
         }
         public static void CreateMesName(this Document doc, int mes)
         {
-            string? mesNome = DateTimeUtil.GetMesNome(mes);
-            if (mesNome != null)
+            string? namesMonth = DateTimeUtil.GetMonthName(mes);
+            if (namesMonth != null)
             {
-                var txt = new Text($"Mês de {mesNome}");
+                var txt = new Text($"Mês de {namesMonth}");
                 var font = GetPdfFont();
 
                 txt.SetFont(font)
@@ -52,53 +52,53 @@ namespace EscaMaker.Utils
                     .SetTextAlignment(TextAlignment.CENTER));
             }
         }
-        public static void CreateTableEscala2(this Document doc, (EscalaInfoPDF escalaInfo1, EscalaInfoPDF escalaInfo2) escalasPDF, int mes)
+        public static void CreateTableEscala2(this Document doc, (ScheduleInfoPDF, ScheduleInfoPDF) schedulesPDF, int month)
         {
-            var (escalaInfo, escalaInfo2) = escalasPDF;
-            var (periodosDatas, periodosDatas2) = (escalaInfo.periodoData, escalaInfo2.periodoData);
-            var (periodosNomes, periodosNomes2) = (escalaInfo.periodosNomes, escalaInfo2.periodosNomes);
-            var (headersEscala, headersEscala2) = (escalaInfo.EscalaInfo.GetHeaders(), escalaInfo2.EscalaInfo.GetHeaders());
-            var (datasEscala, datasEscala2) = (escalaInfo.periodoData, escalaInfo2.periodoData);
+            var (scheduleInfo, scheduleInfo2) = schedulesPDF;
+            var (periodDates, periodDates2) = (scheduleInfo.PeriodDates, scheduleInfo2.PeriodDates);
+            var (periodNames, periodNames2) = (scheduleInfo.PeriodNames, scheduleInfo2.PeriodNames);
+            var (headersSchedule, headersSchedule2) = (scheduleInfo.ScheduleInfo.GetHeaders(), scheduleInfo2.ScheduleInfo.GetHeaders());
+            var (SchedulesData, datasEscala2) = (scheduleInfo.PeriodDates, scheduleInfo2.PeriodDates);
             var headersLen = 2;
 
             var table = new Table(UnitValue.CreatePercentArray(headersLen))
                 .UseAllAvailableWidth();
 
             table.AddCell(new Cell(1, 1)
-                                .Add(escalaInfo.EscalaInfo.Name.CreateHeaderText())
+                                .Add(scheduleInfo.ScheduleInfo.Name.CreateHeaderText())
                                 .SetTextAlignment(TextAlignment.CENTER));
 
             table.AddCell(new Cell(1, 1)
-                                .Add(escalaInfo2.EscalaInfo.Name.CreateHeaderText())
+                                .Add(scheduleInfo2.ScheduleInfo.Name.CreateHeaderText())
                                 .SetTextAlignment(TextAlignment.CENTER));
 
-            foreach (var header in headersEscala.Concat(headersEscala2))
+            foreach (var header in headersSchedule.Concat(headersSchedule2))
             {
                 table.AddCell(new Cell()
                     .Add(header.CreateHeaderText()));
             }
-            var rowslen = datasEscala.Concat(datasEscala2).Max(x => x.Count()) * headersLen;
+            var rowslen = SchedulesData.Concat(datasEscala2).Max(x => x.Count()) * headersLen;
             for (int i = 0; i < rowslen; i++)
                 table.AddCell(new Cell());
 
-            foreach (var (diasHeader, nameHeader) in datasEscala.Zip(periodosNomes))
+            foreach (var (diasHeader, nameHeader) in SchedulesData.Zip(periodNames))
             {
                 var i3 = 2;
                 foreach (var (dia, name) in diasHeader.Zip(nameHeader))
                 {
-                    var txt = new Text($"{dia:D2}/{mes:D2} - {name}");
+                    var txt = new Text($"{dia:D2}/{month:D2} - {name}");
                     txt.SetFontSize(SizeFont2);
                     table.GetCell(i3, 0)
                         .Add(new Paragraph(txt));
                     i3++;
                 }
             }
-            foreach (var (diasHeader, nameHeader) in datasEscala2.Zip(periodosNomes2))
+            foreach (var (diasHeader, nameHeader) in datasEscala2.Zip(periodNames2))
             {
                 var i3 = 2;
-                foreach (var (dia, name) in diasHeader.Zip(nameHeader))
+                foreach (var (day, name) in diasHeader.Zip(nameHeader))
                 {
-                    var txt = new Text($"{dia:D2}/{mes:D2} - {name}");
+                    var txt = new Text($"{day:D2}/{month:D2} - {name}");
                     txt.SetFontSize(SizeFont2);
                     table.GetCell(i3, 1)
                         .Add(new Paragraph(txt));
@@ -108,35 +108,35 @@ namespace EscaMaker.Utils
             doc.Add(table);
             doc.NewLine();
         }
-        public static void CreateTableEscala(this Document doc, EscalaInfoPDF escalaInfoPDF, int mes)
+        public static void CreateTableEscala(this Document doc, ScheduleInfoPDF scheduleInfoPDF, int month)
         {
-            var escalaInfo = escalaInfoPDF.EscalaInfo;
-            var periodosDatas = escalaInfoPDF.periodoData;
-            var periodosNomes = escalaInfoPDF.periodosNomes;
-            var headersEscala = escalaInfo.GetHeaders();
-            var headersLen = headersEscala.Count();
+            var scheduleInfo = scheduleInfoPDF.ScheduleInfo;
+            var periodDates = scheduleInfoPDF.PeriodDates;
+            var periodNames = scheduleInfoPDF.PeriodNames;
+            var headersSchedule = scheduleInfo.GetHeaders();
+            var headersLen = headersSchedule.Count();
 
             var table = new Table(UnitValue.CreatePercentArray(headersLen))
                 .UseAllAvailableWidth();
             table.AddCell(new Cell(1, headersLen)
-                .Add(escalaInfo.Name.CreateHeaderText())
+                .Add(scheduleInfo.Name.CreateHeaderText())
                 .SetTextAlignment(TextAlignment.CENTER));
-            foreach (var header in headersEscala)
+            foreach (var header in headersSchedule)
             {
                 table.AddCell(new Cell()
                     .Add(header.CreateHeaderText()));
             }
-            var rowslen = periodosDatas.Max(x => x.Count()) * headersLen;
+            var rowslen = periodDates.Max(x => x.Count()) * headersLen;
             for (int i = 0; i < rowslen; i++)
                 table.AddCell(new Cell());
 
             var i2 = 0;
-            foreach (var (diasHeader, nameHeader) in periodosDatas.Zip(periodosNomes))
+            foreach (var (daysHeader, nameHeader) in periodDates.Zip(periodNames))
             {
                 var i3 = 2;
-                foreach (var (dia, name) in diasHeader.Zip(nameHeader))
+                foreach (var (day, name) in daysHeader.Zip(nameHeader))
                 {
-                    var txt = new Text($"{dia:D2}/{mes:D2} - {name}");
+                    var txt = new Text($"{day:D2}/{month:D2} - {name}");
                     txt.SetFontSize(SizeFont2);
                     table.GetCell(i3, i2)
                         .Add(new Paragraph(txt));
@@ -147,7 +147,7 @@ namespace EscaMaker.Utils
             doc.Add(table);
             doc.NewLine();
         }
-        public static MemoryStream? GeneratePDFDocument(int mes,int ano, IEnumerable<IEnumerable<IEnumerable<string>>> periodosNomes, IEnumerable<EscalaInfo> escalaInfos)
+        public static MemoryStream? GeneratePDFDocument(int mes,int ano, IEnumerable<IEnumerable<IEnumerable<string>>> periodosNomes, IEnumerable<ScheduleInfo> escalaInfos)
         {
             FontStd = null;
             try
@@ -163,35 +163,35 @@ namespace EscaMaker.Utils
                 doc.CreateMesName(mes);
                 doc.NewLine();
                 var tablesLen = 0;
-                var escalasInfoPeriodo = escalaInfos.Zip(periodosNomes).ToArray();
-                var lenEscalas = escalasInfoPeriodo.Length;
-                for (int i = 0; i < lenEscalas; i++)
+                var schedulesInfoPeriodo = escalaInfos.Zip(periodosNomes).ToArray();
+                var lenschedules = schedulesInfoPeriodo.Length;
+                for (int i = 0; i < lenschedules; i++)
                 {
-                    var (escala, curnomes) = escalasInfoPeriodo[i];
-                    if (escala.GetHeaders().Count() == 1)
+                    var (schedule, name_cur) = schedulesInfoPeriodo[i];
+                    if (schedule.GetHeaders().Count() == 1)
                     {
-                        if (i + 1 < lenEscalas)
+                        if (i + 1 < lenschedules)
                         {
-                            var (nextEscala, nextCurnomes) = escalasInfoPeriodo[i + 1];
-                            if (nextEscala.GetHeaders().Count() > 1)
+                            var (nextSchedule, next_CurName) = schedulesInfoPeriodo[i + 1];
+                            if (nextSchedule.GetHeaders().Count() > 1)
                             {
-                                doc.CreateTableEscala(new(escala, escala.GetDatas(mes,ano), curnomes), mes);
+                                doc.CreateTableEscala(new(schedule, schedule.GetDates(mes,ano), name_cur), mes);
                             }
                             else
                             {
-                                doc.CreateTableEscala2((new(escala, escala.GetDatas(mes, ano), curnomes), new(nextEscala, nextEscala.GetDatas(mes,ano), nextCurnomes)), mes);
+                                doc.CreateTableEscala2((new(schedule, schedule.GetDates(mes, ano), name_cur), new(nextSchedule, nextSchedule.GetDates(mes,ano), next_CurName)), mes);
                                 i++;
                             }
 
                         }
                         else
                         {
-                            doc.CreateTableEscala(new(escala, escala.GetDatas(mes, ano), curnomes), mes);
+                            doc.CreateTableEscala(new(schedule, schedule.GetDates(mes, ano), name_cur), mes);
                         }
                     }
                     else
                     {
-                        doc.CreateTableEscala(new(escala, escala.GetDatas(mes, ano), curnomes), mes);
+                        doc.CreateTableEscala(new(schedule, schedule.GetDates(mes, ano), name_cur), mes);
 
                     }
                     tablesLen++;

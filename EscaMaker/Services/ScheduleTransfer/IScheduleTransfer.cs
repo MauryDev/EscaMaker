@@ -2,10 +2,10 @@
 
 namespace EscaMaker.Utils.EscalaTransfer
 {
-    public interface IEscalaTransfer
+    public interface IScheduleTransfer
     {
-        Task<bool> Export(string name, EscalaLocalData data);
-        Task<EscalaLocalData?> Import(string nameId);
+        Task<bool> Export(string name, LocalScheduleData data);
+        Task<LocalScheduleData?> Import(string nameId);
 
         Task<bool> Delete(string name);
 

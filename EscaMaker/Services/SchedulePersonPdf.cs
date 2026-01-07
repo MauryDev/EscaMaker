@@ -9,7 +9,7 @@ using iText.Layout.Properties;
 namespace EscaMaker.Services;
 
 
-public class EscalaPessoaPdf
+public class SchedulePersonPdf(BackgroundEventHandlerPDF backgroundEventHandler)
 {
     const float TitleFontSize = 35f;
     const float DayFontSize = 25f;
@@ -20,22 +20,18 @@ public class EscalaPessoaPdf
     const float PageMargin = 30f;
     PdfFont? FontStd { get; set; }
     Document? DocumentCurrent { get; set; }
-    BackgroundEventHandler EventHandler { get; set; }
+    BackgroundEventHandlerPDF EventHandler { get; set; } = backgroundEventHandler;
 
-    public EscalaPessoaPdf(BackgroundEventHandler backgroundEventHandler)
-    {
-        this.EventHandler = backgroundEventHandler;
-    }
     PdfFont GetPdfFont()
     {
         FontStd ??= PdfFontFactory.CreateFont(Resources.Resource.georgiaFont, "");
         return FontStd;
     }
-    public Stream GeneratePDF(string NamePessoa, int Month, Dictionary<DateOnly, IEnumerable<string>> Funcoes)
+    public Stream GeneratePDF(string NamePerson, int Month, Dictionary<DateOnly, IEnumerable<string>> Functions)
     {
         var output = new MemoryStream();
 
-        CreateSimplePdf(Resources.Resource.image, output, NamePessoa, Month, Funcoes);
+        CreateSimplePdf(Resources.Resource.image, output, NamePerson, Month, Functions);
 
         output.Seek(0, SeekOrigin.Begin);
         FontStd = null;
@@ -45,8 +41,8 @@ public class EscalaPessoaPdf
     }
 
     void CreateSimplePdf(byte[] imageBytes, Stream outputStream,
-        string NamePessoa, int Month,
-        Dictionary<DateOnly, IEnumerable<string>> Funcoes)
+        string NamePerson, int Month,
+        Dictionary<DateOnly, IEnumerable<string>> Function)
     {
         using var writer = new PdfWriter(outputStream);
         writer.SetCloseStream(false);
@@ -57,20 +53,14 @@ public class EscalaPessoaPdf
         DocumentCurrent.SetMargins(PageMargin, PageMargin, PageMargin, PageMargin);
         AddFullPageBackgroundImage(imageBytes);
 
-        AddTitle($"Escala de {Utils.DateTimeUtil.GetMesNome(Month)}");
-        AddNameInfo(NamePessoa);
+        AddTitle($"Escala de {Utils.DateTimeUtil.GetMonthName(Month)}");
+        AddNameInfo(NamePerson);
 
-        var firstPage = true;
-
-        foreach (var funcoesDia in Funcoes)
+        foreach (var functionDay in Function)
         {
            
-            AddDiaInfo(funcoesDia.Key);
-            AddRoles(funcoesDia.Value);
-            
-
-            firstPage = false;
-
+            AddDiaInfo(functionDay.Key);
+            AddRoles(functionDay.Value);
         }
 
         ((IDisposable)DocumentCurrent).Dispose();
@@ -81,9 +71,9 @@ public class EscalaPessoaPdf
     {
         var imageData = ImageDataFactory.Create(imageBytes);
         
-        var pdf = DocumentCurrent.GetPdfDocument();
+        var pdf = DocumentCurrent?.GetPdfDocument();
         this.EventHandler.Init(imageData);
-        pdf.AddEventHandler(PdfDocumentEvent.INSERT_PAGE, this.EventHandler);
+        pdf?.AddEventHandler(PdfDocumentEvent.INSERT_PAGE, this.EventHandler);
     }
 
     void AddTitle(string text)
@@ -96,7 +86,7 @@ public class EscalaPessoaPdf
             .SetFont(font)
             .SetMarginLeft(LeftMargin);
 
-        DocumentCurrent.Add(p);
+        DocumentCurrent?.Add(p);
     }
     void AddNameInfo(string Name)
     {
@@ -111,7 +101,7 @@ public class EscalaPessoaPdf
             .SetFont(font)
             .SetMarginBottom(DayBottomSpacing);
 
-        DocumentCurrent.Add(p);
+        DocumentCurrent?.Add(p);
     }
     void AddDiaInfo(DateOnly diaInfo)
     {
@@ -126,7 +116,7 @@ public class EscalaPessoaPdf
             .SetMarginBottom(EntryBottomSpacing);
 
 
-        DocumentCurrent.Add(p);
+        DocumentCurrent?.Add(p);
     }
 
 
@@ -147,9 +137,6 @@ public class EscalaPessoaPdf
             list.Add(item);
         }
 
-        DocumentCurrent.Add(list);
-
-     
-
+        DocumentCurrent?.Add(list);
     }
 }

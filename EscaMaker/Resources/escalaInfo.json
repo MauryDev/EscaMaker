@@ -1,38 +1,38 @@
 [
   {
     "Name": "Momento Prévios",
-    "diasType": "SDQ"
+    "daysType": "SDQ"
   },
   {
     "Name": "Louvor Especial",
-    "diasType": "SDQ"
+    "daysType": "SDQ"
   },
   {
     "Name": "Sonoplastia",
-    "diasType": "SDQ"
+    "daysType": "SDQ"
   },
   {
     "Name": "Pregação",
-    "diasType": "SDQ"
+    "daysType": "SDQ"
   },
   {
     "Name": "Recepção",
-    "diasType": "DQ"
+    "daysType": "DQ"
   },
   {
     "Name": "Programação",
-    "diasType": "DQ"
+    "daysType": "DQ"
   },
   {
     "Name": "Escola Sabatina",
-    "diasType": "S"
+    "daysType": "S"
   },
   {
     "Name": "Diácono",
-    "diasType": "S"
+    "daysType": "S"
   },
   {
     "Name": "Professor",
-    "diasType": "S"
+    "daysType": "S"
   }
 ]

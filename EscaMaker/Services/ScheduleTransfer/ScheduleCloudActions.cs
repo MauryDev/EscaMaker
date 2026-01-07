@@ -5,17 +5,17 @@ using System.Text.Json;
 
 namespace EscaMaker.Utils.EscalaTransfer
 {
-    public class EscalaCloudActions : IEscalaTransfer
+    public class ScheduleCloudActions : IScheduleTransfer
     {
         AdminApiService AdminApiService { get; set; }
 
-        bool IEscalaTransfer.CanDelete => true;
+        bool IScheduleTransfer.CanDelete => true;
 
-        public EscalaCloudActions(AdminApiService adminApiService)
+        public ScheduleCloudActions(AdminApiService adminApiService)
         {
             AdminApiService = adminApiService;
         }
-        async Task<bool> IEscalaTransfer.Export(string name, EscalaLocalData data)
+        async Task<bool> IScheduleTransfer.Export(string name, LocalScheduleData data)
         {
             var Escamakerinfo = new View.EscaMakerInfo()
             {
@@ -32,7 +32,7 @@ namespace EscaMaker.Utils.EscalaTransfer
             }
         }
 
-        async Task<EscalaLocalData?> IEscalaTransfer.Import(string name)
+        async Task<LocalScheduleData?> IScheduleTransfer.Import(string name)
         {
             try
             {
@@ -40,7 +40,7 @@ namespace EscaMaker.Utils.EscalaTransfer
                 if (resultado == null || resultado.data == null)
                     return null;
 
-                return JsonSerializer.Deserialize<EscalaLocalData>(resultado.data.JSONData);
+                return JsonSerializer.Deserialize<LocalScheduleData>(resultado.data.JSONData);
             }
             catch (Exception)
             {
@@ -49,13 +49,13 @@ namespace EscaMaker.Utils.EscalaTransfer
             }
         }
 
-        async Task<bool> IEscalaTransfer.Delete(string Name)
+        async Task<bool> IScheduleTransfer.Delete(string Name)
         {
             return await AdminApiService.DeleteAsync(Name);
 
         }
 
-        async Task<IEnumerable<string>> IEscalaTransfer.GetNames()
+        async Task<IEnumerable<string>> IScheduleTransfer.GetNames()
         {
             return await AdminApiService.GetAllNames() ?? [];
         }

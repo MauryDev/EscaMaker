@@ -1,8 +1,8 @@
 ﻿@using ClipLazor.Components;
 @inject IClipLazor Clipboard
 @inject ISnackbar _snackbar
-@inject Services.EscalaPessoaPdf escalaPessoaPdf
-@inject Services.PDFEscala pDFEscala
+@inject Services.SchedulePersonPdf escalaPessoaPdf
+@inject Services.PDFSchedule pDFEscala
 
 
 <MudDialog>
@@ -13,12 +13,12 @@
         <MudPaper Style="width: 100%">
             <MudStepper OnPreviewInteraction="OnPreviewInteraction">
                
-                <MudStep Title="Selecione a pessoa">
+                <MudStep Style="width:100%; padding-left: 5px; padding-right: 5px;" Title="Selecione a pessoa">
                     <EPSelectName Names="Names" NameChanged="OnOk" />
                    
                 </MudStep>
-                <MudStep Title="Ação">
-                    <EPView Mes="Mes" Ano="Ano" Nome="@Nome" DiasAndFuncao="DiasAndFuncao" Disabled="@(!isCompleted)" />
+                <MudStep Title="Ação" Style="width:100%; padding-left: 5px; padding-right: 5px;">
+                    <EPView Mes="Month" Ano="Year" Nome="@Nome" DiasAndFuncao="DiasAndFuncao" Disabled="@(!isCompleted)" />
                 </MudStep>
             </MudStepper>
         </MudPaper>
@@ -35,23 +35,23 @@
 @code {
 
     [CascadingParameter]
-    public IMudDialogInstance MudDialog { get; set; }
+    IMudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
     public List<string> Names { get; set; }
 
     [Parameter]
-    public int Mes { get; set; }
+    public int Month { get; set; }
     [Parameter]
-    public int Ano { get; set; }
+    public int Year { get; set; }
 
     [Parameter]
-    public View.EscalaTipoView[] EscalaTipos { get; set; }
+    public required View.ScheduleTypeView[] EscalaTipos { get; set; }
 
-    public bool isCompleted { get; set; } = false;
-    public string? MesNome => Utils.DateTimeUtil.GetMesNome(Mes);
-    public string Nome { get; set; } = string.Empty;
-    public IEnumerable<(string? Name, byte Dia, string PersonName)>? DiasAndFuncao => View.EscalaTipoView.GetDias(EscalaTipos, Nome);
+    bool isCompleted { get; set; } = false;
+    string? MesNome => Utils.DateTimeUtil.GetMonthName(Month);
+    string Nome { get; set; } = string.Empty;
+    IEnumerable<(string? Name, byte Dia, string PersonName)>? DiasAndFuncao => View.ScheduleTypeView.GetDays(EscalaTipos, Nome);
     void OnOk(string nome)
     {
         Nome = nome;

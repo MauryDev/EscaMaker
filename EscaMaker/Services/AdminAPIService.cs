@@ -16,7 +16,7 @@ public class AdminApiService(HttpClient httpClient)
 
     public async Task<(string?,string?)> LoginAsync(string user, string password)
     {
-        var loginInfo = new Login { user = user, password = password };
+        var loginInfo = new Login(user, password);
         const string endpoint = "/api/admin/login";
 
         var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
@@ -120,7 +120,7 @@ public class AdminApiService(HttpClient httpClient)
         EnsureAuthenticated();
 
 
-        var body = new DeleteBody { Nome = nome };
+        var body = new DeleteBody(nome);
         
         var request = new HttpRequestMessage(HttpMethod.Delete, endpoint)
         {

@@ -64,35 +64,35 @@ namespace EscaMaker.Resources {
         ///   Looks up a localized string similar to [
         ///  {
         ///    &quot;Name&quot;: &quot;Momento Prévios&quot;,
-        ///    &quot;diasType&quot;: &quot;SDQ&quot;
+        ///    &quot;daysType&quot;: &quot;SDQ&quot;
         ///  },
         ///  {
         ///    &quot;Name&quot;: &quot;Louvor Especial&quot;,
-        ///    &quot;diasType&quot;: &quot;SDQ&quot;
+        ///    &quot;daysType&quot;: &quot;SDQ&quot;
         ///  },
         ///  {
         ///    &quot;Name&quot;: &quot;Sonoplastia&quot;,
-        ///    &quot;diasType&quot;: &quot;SDQ&quot;
+        ///    &quot;daysType&quot;: &quot;SDQ&quot;
         ///  },
         ///  {
         ///    &quot;Name&quot;: &quot;Pregação&quot;,
-        ///    &quot;diasType&quot;: &quot;SDQ&quot;
+        ///    &quot;daysType&quot;: &quot;SDQ&quot;
         ///  },
         ///  {
         ///    &quot;Name&quot;: &quot;Recepção&quot;,
-        ///    &quot;diasType&quot;: &quot;DQ&quot;
+        ///    &quot;daysType&quot;: &quot;DQ&quot;
         ///  },
         ///  {
         ///    &quot;Name&quot;: &quot;Programação&quot;,
-        ///    &quot;diasType&quot;: &quot;DQ&quot;
+        ///    &quot;daysType&quot;: &quot;DQ&quot;
         ///  },
         ///  {
         ///    &quot;Name&quot;: &quot;Escola Sabatina&quot;,
-        ///    &quot;diasType&quot;: &quot;S&quot;
+        ///    &quot;daysType&quot;: &quot;S&quot;
         ///  },
         ///  {
         ///    &quot;Name&quot;: &quot;Diácono&quot;,
-        ///    &quot;diasType&quot;: &quot;S&quot;
+        ///    &quot;daysType&quot;: &quot;S&quot;
         ///  },
         ///  {
         ///    &quot;Name&quot;:  [rest of string was truncated]&quot;;.

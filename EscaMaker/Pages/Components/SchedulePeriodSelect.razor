@@ -26,7 +26,7 @@
 
 @code {
     [CascadingParameter]
-    private IMudDialogInstance MudDialog { get; set; }
+    private IMudDialogInstance MudDialog { get; set; } = null!;
     [Inject]
     ISnackbar Snackbar { get; set; }
     [Parameter]
