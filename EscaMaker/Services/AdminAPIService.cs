@@ -1,5 +1,6 @@
 ﻿namespace EscaMaker.Services;
 
+using Blazored.LocalStorage;
 using EscaMaker.View;
 using iText.StyledXmlParser.Jsoup.Nodes;
 using Org.BouncyCastle.Asn1.Ocsp;
@@ -166,5 +167,14 @@ public class AdminApiService(HttpClient httpClient)
             throw new InvalidOperationException("Não autenticado. Você deve fazer login primeiro.");
         }
     }
+    public async Task LoadAuthToken(ILocalStorageService localStorageService)
+    {
+        _authToken = await localStorageService.GetItemAsStringAsync("authToken") ?? string.Empty;
+    }
+    public async Task Logout(ILocalStorageService localStorageService)
+    {   _authToken = string.Empty;
+        await localStorageService.RemoveItemAsync("authToken");
+    }
+
     public void LoadAuthToken(string token) => _authToken = token;
 }

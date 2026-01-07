@@ -1,4 +1,4 @@
-﻿<MudTd DataLabel="Dia">@Dia</MudTd>
+﻿<MudTd DataLabel="Dia">@(Dia.ToString("D2"))</MudTd>
 <MudTd DataLabel="Nome">
 	<MudTextField Value="@Name" ValueChanged="@NameChanged"  Variant="Variant.Text" Margin="Margin.Dense" /> @* MudTextField com Variant.Text dentro da tabela *@
 </MudTd>

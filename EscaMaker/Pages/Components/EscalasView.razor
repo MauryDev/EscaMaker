@@ -1,0 +1,19 @@
+﻿<MudText Class="mt-8 mb-4 text-center" Typo="Typo.h4" Align="Align.Center">Mês de @GetMesName()</MudText>
+<MudDivider DividerType="DividerType.FullWidth" />
+
+<MudGrid Spacing="4">
+    @foreach (var escalatipo in escalaTipos)
+    {
+        <MudItem xs="12" sm="6" md="4">
+            <EscaMaker.Pages.Components.EscalaTipo EscalaTipo_View="@escalatipo" />
+        </MudItem>
+    }
+</MudGrid>
+@code {
+    [Parameter]
+    public IEnumerable<View.EscalaTipoView> escalaTipos { get; set; }
+    [Parameter]
+    public int Mes { get; set; }
+    private string GetMesName() => Utils.DateTimeUtil.GetMesNome(Mes);
+
+}

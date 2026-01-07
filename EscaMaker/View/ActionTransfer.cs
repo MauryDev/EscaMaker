@@ -4,5 +4,6 @@ public enum ActionTransfer
 {
     None,
     Save,
-    Load
+    Load,
+    Delete
 }

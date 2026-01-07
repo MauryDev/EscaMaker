@@ -1,0 +1,22 @@
+﻿@inject MudBlazor.IDialogService DialogService
+
+<MudDialog OnBackdropClick="ClosePreview">
+    <DialogContent>
+        <iframe style="width: 100%; height: 70vh; border: none;" src="@LastPreviewUrl"></iframe>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="ClosePreview" Color="Color.Default">Fechar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public IMudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public string LastPreviewUrl { get; set; } = string.Empty;
+    void ClosePreview()
+    {
+        MudDialog.Close();
+    }
+
+}

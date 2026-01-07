@@ -1,0 +1,70 @@
+﻿@using ClipLazor.Components;
+@inject IClipLazor Clipboard
+@inject ISnackbar _snackbar
+@inject Services.EscalaPessoaPdf escalaPessoaPdf
+@inject Services.PDFEscala pDFEscala
+
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h3">Escala pessoal</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudPaper Style="width: 100%">
+            <MudStepper OnPreviewInteraction="OnPreviewInteraction">
+               
+                <MudStep Title="Selecione a pessoa">
+                    <EPSelectName Names="Names" NameChanged="OnOk" />
+                   
+                </MudStep>
+                <MudStep Title="Ação">
+                    <EPView Mes="Mes" Ano="Ano" Nome="@Nome" DiasAndFuncao="DiasAndFuncao" Disabled="@(!isCompleted)" />
+                </MudStep>
+            </MudStepper>
+        </MudPaper>
+
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="OnClose" Variant="Variant.Text" Color="Color.Default">Fechar</MudButton>
+    </DialogActions>
+
+</MudDialog>
+
+
+
+@code {
+
+    [CascadingParameter]
+    public IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public List<string> Names { get; set; }
+
+    [Parameter]
+    public int Mes { get; set; }
+    [Parameter]
+    public int Ano { get; set; }
+
+    [Parameter]
+    public View.EscalaTipoView[] EscalaTipos { get; set; }
+
+    public bool isCompleted { get; set; } = false;
+    public string? MesNome => Utils.DateTimeUtil.GetMesNome(Mes);
+    public string Nome { get; set; } = string.Empty;
+    public IEnumerable<(string? Name, byte Dia, string PersonName)>? DiasAndFuncao => View.EscalaTipoView.GetDias(EscalaTipos, Nome);
+    void OnOk(string nome)
+    {
+        Nome = nome;
+    }
+    void OnClose()
+    {
+        MudDialog.Close();
+    }
+
+    private async Task OnPreviewInteraction(StepperInteractionEventArgs arg)
+    {
+        
+        isCompleted = arg.Action == StepAction.Complete && arg.StepIndex == 1;
+        if (isCompleted) StateHasChanged();
+    }
+}

@@ -61,6 +61,49 @@ namespace EscaMaker.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [
+        ///  {
+        ///    &quot;Name&quot;: &quot;Momento Prévios&quot;,
+        ///    &quot;diasType&quot;: &quot;SDQ&quot;
+        ///  },
+        ///  {
+        ///    &quot;Name&quot;: &quot;Louvor Especial&quot;,
+        ///    &quot;diasType&quot;: &quot;SDQ&quot;
+        ///  },
+        ///  {
+        ///    &quot;Name&quot;: &quot;Sonoplastia&quot;,
+        ///    &quot;diasType&quot;: &quot;SDQ&quot;
+        ///  },
+        ///  {
+        ///    &quot;Name&quot;: &quot;Pregação&quot;,
+        ///    &quot;diasType&quot;: &quot;SDQ&quot;
+        ///  },
+        ///  {
+        ///    &quot;Name&quot;: &quot;Recepção&quot;,
+        ///    &quot;diasType&quot;: &quot;DQ&quot;
+        ///  },
+        ///  {
+        ///    &quot;Name&quot;: &quot;Programação&quot;,
+        ///    &quot;diasType&quot;: &quot;DQ&quot;
+        ///  },
+        ///  {
+        ///    &quot;Name&quot;: &quot;Escola Sabatina&quot;,
+        ///    &quot;diasType&quot;: &quot;S&quot;
+        ///  },
+        ///  {
+        ///    &quot;Name&quot;: &quot;Diácono&quot;,
+        ///    &quot;diasType&quot;: &quot;S&quot;
+        ///  },
+        ///  {
+        ///    &quot;Name&quot;:  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string escalaInfos {
+            get {
+                return ResourceManager.GetString("escalaInfos", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] georgiaFont {

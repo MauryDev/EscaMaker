@@ -25,9 +25,9 @@ namespace EscaMaker.Services
             return ActivatorUtilities.CreateInstance<EscalaLocalStorageActions>(ServiceProvider);
         }
 
-        IEscalaTransfer IEscalaDataTransferService.GetCloudProvider(Func<string> getName)
+        IEscalaTransfer IEscalaDataTransferService.GetCloudProvider()
         {
-            return ActivatorUtilities.CreateInstance<EscalaCloudActions>(ServiceProvider, getName);
+            return ActivatorUtilities.CreateInstance<EscalaCloudActions>(ServiceProvider);
         }
     }
 }

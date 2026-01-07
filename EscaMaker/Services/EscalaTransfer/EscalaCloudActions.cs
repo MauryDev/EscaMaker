@@ -1,5 +1,6 @@
 ﻿
 using EscaMaker.Services;
+using EscaMaker.View;
 using System.Text.Json;
 
 namespace EscaMaker.Utils.EscalaTransfer
@@ -7,18 +8,18 @@ namespace EscaMaker.Utils.EscalaTransfer
     public class EscalaCloudActions : IEscalaTransfer
     {
         AdminApiService AdminApiService { get; set; }
-        Func<string> GetName { get; set; }
-        string Name => GetName();
-        public EscalaCloudActions(AdminApiService adminApiService, Func<string> GetName)
+
+        bool IEscalaTransfer.CanDelete => true;
+
+        public EscalaCloudActions(AdminApiService adminApiService)
         {
             AdminApiService = adminApiService;
-            this.GetName = GetName;
         }
-        async Task<bool> IEscalaTransfer.Export(EscalaLocalData data)
+        async Task<bool> IEscalaTransfer.Export(string name, EscalaLocalData data)
         {
             var Escamakerinfo = new View.EscaMakerInfo()
             {
-                Nome = Name,
+                Nome = name,
                 JSONData = JsonSerializer.Serialize(data)
             };
             try
@@ -31,11 +32,11 @@ namespace EscaMaker.Utils.EscalaTransfer
             }
         }
 
-        async Task<EscalaLocalData?> IEscalaTransfer.Import()
+        async Task<EscalaLocalData?> IEscalaTransfer.Import(string name)
         {
             try
             {
-                var resultado = await AdminApiService.LoadAsync(Name);
+                var resultado = await AdminApiService.LoadAsync(name);
                 if (resultado == null || resultado.data == null)
                     return null;
 
@@ -48,10 +49,15 @@ namespace EscaMaker.Utils.EscalaTransfer
             }
         }
 
-        async Task<bool> IEscalaTransfer.Delete()
+        async Task<bool> IEscalaTransfer.Delete(string Name)
         {
             return await AdminApiService.DeleteAsync(Name);
 
+        }
+
+        async Task<IEnumerable<string>> IEscalaTransfer.GetNames()
+        {
+            return await AdminApiService.GetAllNames() ?? [];
         }
     }
 }

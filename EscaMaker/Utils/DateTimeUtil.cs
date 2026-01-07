@@ -59,7 +59,7 @@ public class DateTimeUtil
         return dayOfWeek switch
         {
             DayOfWeek.Sunday => "Domingo",
-            DayOfWeek.Monday => "Segunda",
+            DayOfWeek.Monday => "Segunda-feira",
             DayOfWeek.Tuesday => "Terça-feira",
             DayOfWeek.Wednesday => "Quarta-feira",
             DayOfWeek.Thursday => "Quinta-feira",

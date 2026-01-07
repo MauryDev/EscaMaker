@@ -1,25 +1,215 @@
-﻿@inject Services.Contracts.IEscalaDataTransferService escalaDataTransferService
+﻿@using EscaMaker.View
+@inject Services.Contracts.IEscalaDataTransferService EscalaDataTransferService
+@inject ISnackbar Snackbar
 
-<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnClick">Ok</MudButton>
+<MudStack Spacing="4" Class="width-100 animate-fade-in">
 
-@code {
-    [Parameter]
-    public View.ActionTransfer actionTransfer { get; set; }
-    [Parameter]
-    public IMudDialogInstance MudDialog { get; set; }
-    [Parameter]
-    public Utils.EscalaLocalData? escalaLocalData { get; set; }
-    public async Task OnClick()
-    {
-        var escalaTransfer = escalaDataTransferService.GetLocalStorageProvider();
-        switch (actionTransfer)
+    <MudText Typo="Typo.h6" Class="mb-2">
+        @switch (ActionTransfer)
         {
             case View.ActionTransfer.Load:
-                MudDialog.Close(await escalaTransfer.Import());
+                @:Carregar do Navegador
                 break;
             case View.ActionTransfer.Save:
-                MudDialog.Close(await escalaTransfer.Export(escalaLocalData!));
+                @:Salvar no Navegador
                 break;
+            case View.ActionTransfer.Delete:
+                @:Remover do Navegador
+                break;
+        }
+    </MudText>
+
+    <MudText Typo="Typo.body2" Color="Color.Secondary">
+        @switch (ActionTransfer)
+        {
+            case View.ActionTransfer.Load:
+                @:Selecione um item salvo localmente para <b>carregar</b>.
+                break;
+            case View.ActionTransfer.Save:
+                @:Defina um nome para <b>salvar</b> a escala no navegador.
+                break;
+            case View.ActionTransfer.Delete:
+                @:Selecione um item para <span class="mud-error-text"><b>remover permanentemente</b></span>.
+                break;
+        }
+    </MudText>
+
+    <MudAutocomplete T="string"
+                     @bind-Value="Name"
+                     Label="@GetLabel()"
+                     Placeholder="Ex: Escala-Dezembro-2024"
+                     Variant="Variant.Outlined"
+                     Margin="Margin.Dense"
+                     Clearable="true"
+                     Disabled="@_isBusy"
+                     Adornment="Adornment.End"
+                     AdornmentIcon="@GetIcon()"
+                     AdornmentColor="@GetColor()"
+                     FullWidth="true"
+                     SearchFunc="@SearchCloudResources"
+                     CoerceText="true"
+                     CoerceValue="true"
+                     Immediate="true" />
+
+    <MudButton Variant="Variant.Filled"
+               Color="@GetColor()"
+               Size="Size.Large"
+               StartIcon="@GetButtonIcon()"
+               Disabled="@(_isBusy || string.IsNullOrWhiteSpace(Name))"
+               OnClick="OnClickAsync"
+               FullWidth="true"
+               Class="mt-2 py-3">
+        @if (_isBusy)
+        {
+            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+            <MudText Class="ms-2">Processando...</MudText>
+        }
+        else
+        {
+            @GetButtonText()
+        }
+    </MudButton>
+
+</MudStack>
+
+<style>
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public View.ActionTransfer ActionTransfer { get; set; }
+    [Parameter] public required IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public EscalaLocalData? EscalaLocalData { get; set; }
+
+    public string Name { get; set; } = string.Empty;
+    private bool _isBusy;
+
+    private string GetLabel() => ActionTransfer switch
+    {
+        View.ActionTransfer.Save => "Nome do Arquivo",
+        View.ActionTransfer.Delete => "Item a deletar",
+        _ => "Selecionar Item"
+    };
+
+    private string GetIcon() => ActionTransfer switch
+    {
+        View.ActionTransfer.Save => Icons.Material.Filled.Edit,
+        View.ActionTransfer.Delete => Icons.Material.Filled.Warning,
+        _ => Icons.Material.Filled.FolderOpen
+    };
+
+    private string GetButtonIcon() => ActionTransfer switch
+    {
+        View.ActionTransfer.Load => Icons.Material.Filled.FileOpen,
+        View.ActionTransfer.Save => Icons.Material.Filled.Save,
+        View.ActionTransfer.Delete => Icons.Material.Filled.DeleteForever,
+        _ => Icons.Material.Filled.Check
+    };
+
+    private Color GetColor() => ActionTransfer == View.ActionTransfer.Delete ? Color.Error : Color.Primary;
+
+    private string GetButtonText() => ActionTransfer switch
+    {
+        View.ActionTransfer.Load => "Carregar Escala",
+        View.ActionTransfer.Save => "Salvar Localmente",
+        View.ActionTransfer.Delete => "Deletar Item",
+        _ => "Confirmar"
+    };
+
+    private async Task OnClickAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Name) || _isBusy)
+            return;
+
+        _isBusy = true;
+        try
+        {
+            var provider = EscalaDataTransferService.GetLocalStorageProvider();
+
+            switch (ActionTransfer)
+            {
+                case View.ActionTransfer.Load:
+                    var importedData = await provider.Import(Name);
+                    if (importedData != null)
+                    {
+                        Snackbar.Add("Dados carregados com sucesso!", Severity.Success);
+                        MudDialog.Close(DialogResult.Ok(importedData));
+                    }
+                    else
+                    {
+                        Snackbar.Add("Não foi possível carregar os dados.", Severity.Error);
+                    }
+                    break;
+
+                case View.ActionTransfer.Save:
+                    if (EscalaLocalData != null)
+                    {
+                        var result = await provider.Export(Name, EscalaLocalData);
+                        if (result)
+                        {
+                            Snackbar.Add("Dados salvos com sucesso!", Severity.Success);
+                            MudDialog.Close(DialogResult.Ok(result));
+                        }
+                        else
+                        {
+                            Snackbar.Add("Erro ao salvar dados.", Severity.Error);
+                        }
+                    }
+                    break;
+
+                case View.ActionTransfer.Delete:
+                    var deleteResult = await provider.Delete(Name);
+                    if (deleteResult)
+                    {
+                        Snackbar.Add($"Item '{Name}' removido.", Severity.Success);
+                        MudDialog.Close(DialogResult.Ok(deleteResult));
+                    }
+                    else
+                    {
+                        Snackbar.Add("Erro ao tentar deletar o item.", Severity.Error);
+                    }
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Erro inesperado: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private async Task<IEnumerable<string>> SearchCloudResources(string value, CancellationToken token)
+    {
+        try
+        {
+            var provider = EscalaDataTransferService.GetLocalStorageProvider();
+            var names = await provider.GetNames();
+
+            if (string.IsNullOrEmpty(value))
+                return names;
+
+            return names.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+        }
+        catch
+        {
+            return Array.Empty<string>();
         }
     }
 }

@@ -86,3 +86,7 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+.escalagenerator-button {
+    border-radius: 24px !important;
+}

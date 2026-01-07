@@ -4,5 +4,6 @@ public enum ModeTransfer
 {
     None,
     LocalStorage,
-    File
+    File,
+    Cloud
 }

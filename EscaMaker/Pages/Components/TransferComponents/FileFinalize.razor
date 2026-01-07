@@ -1,66 +1,148 @@
-﻿@inject Services.Contracts.IEscalaDataTransferService EscalaDataTransferService
+﻿@using EscaMaker.View
+@inject Services.Contracts.IEscalaDataTransferService EscalaDataTransferService
 @inject ISnackbar Snackbar
 
-@if (ActionTransfer == View.ActionTransfer.Load)
-{
-    <MudStack Spacing="3">
-        <MudText>Selecione um arquivo JSON para importar os dados da escala.</MudText>
+<MudStack Spacing="4" Class="width-100 animate-fade-in">
+
+    @if (ActionTransfer == View.ActionTransfer.Load)
+    {
+        <MudText Typo="Typo.h6" Class="mb-2">Importar do Arquivo</MudText>
+        
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
+            Selecione um arquivo <b>.json</b> para importar os dados da escala.
+        </MudText>
 
         <MudFileUpload T="IBrowserFile"
                        FilesChanged="OnFileUpload"
-                       Required="true"
                        Accept=".json"
-                       Error="@_hasError">
+                       Error="@_hasError"
+                       Class="d-flex flex-column">
             <ActivatorContent>
-                <MudButton HtmlTag="label"
-                           Variant="Variant.Filled"
-                           Color="Color.Primary"
-                           StartIcon="@Icons.Material.Filled.FileUpload">
-                    Selecionar Arquivo
-                </MudButton>
-            </ActivatorContent>
+                <MudPaper Class="d-flex flex-column align-center justify-center py-8 px-4 cursor-pointer transition-all"
+                          Outlined="true"
+                          Elevation="0"
+                          Style="@($"border-style: dashed; border-width: 2px; border-color: {(_hasError ? "var(--mud-palette-error)" : "var(--mud-palette-primary)")}; background-color: {(_file != null ? "var(--mud-palette-action-hover)" : "transparent")}; min-height: 150px;")">
 
-            <SelectedTemplate>
-                @if (_file is not null)
-                {
-                    <MudText><b>@_file.Name</b> <code>@_file.Size bytes</code></MudText>
-                }
-                else
-                {
-                    <MudText>Nenhum Arquivo</MudText>
-                }
-            </SelectedTemplate>
+                    @if (_file == null)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Size="Size.Large" Color="Color.Primary" Class="mb-3" Style="font-size: 3.5rem; opacity: 0.8;" />
+                        <MudText Typo="Typo.h6" Color="Color.Primary" Align="Align.Center">Clique ou arraste o arquivo aqui</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">Suporta apenas arquivos .json</MudText>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Large" Color="Color.Success" Class="mb-3" Style="font-size: 3rem;" />
+                            <MudText Typo="Typo.subtitle1" Class="text-truncate" Style="max-width: 250px; font-weight: bold;">@_file.Name</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="Color.Info" Class="mt-2">@FormatBytes(_file.Size)</MudChip>
+
+                            <MudButton Variant="Variant.Text" Color="Color.Error" Size="Size.Small" StartIcon="@Icons.Material.Filled.Close" OnClick="@(e => RemoveFile())" Class="mt-3">
+                                Escolher outro arquivo
+                            </MudButton>
+                        </div>
+                    }
+                </MudPaper>
+            </ActivatorContent>
         </MudFileUpload>
 
         @if (_hasError)
         {
-            <MudText Color="Color.Error" Typo="Typo.body2">Por favor, selecione um arquivo JSON válido.</MudText>
+            <MudAlert Severity="Severity.Error" Dense="true" Class="mt-3" ShowCloseIcon="false">
+                Por favor, selecione um arquivo JSON válido.
+            </MudAlert>
         }
-    </MudStack>
 
-    <MudButton Variant="Variant.Filled"
-               Color="Color.Primary"
-               Disabled="@(_isBusy || !_canExecuteLoad)"
-               OnClick="OnClickAsync">
-               @(_isBusy ? "Carregando..." : "Ok")
-    </MudButton>
-}
-else if (ActionTransfer == View.ActionTransfer.Save)
-{
-    <MudText>Deseja exportar os dados?</MudText>
-    <MudButton Variant="Variant.Filled"
-               Color="Color.Primary"
-               Disabled="@(_isBusy || !_canExecuteSave)"
-               OnClick="OnClickAsync">
-        @(_isBusy ? "Salvando..." : "Sim")
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.FileDownload"
+                   Disabled="@(_isBusy || !_canExecuteLoad)"
+                   OnClick="OnClickAsync"
+                   FullWidth="true"
+                   Class="mt-4 py-3">
+            @if (_isBusy)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">Importando...</MudText>
+            }
+            else
+            {
+                @:Importar Dados
+            }
+        </MudButton>
+    }
+    else if (ActionTransfer == View.ActionTransfer.Save)
+    {
+        <MudText Typo="Typo.h6" Class="mb-2">Exportar para Arquivo</MudText>
+        
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+            Configure o nome e baixe o arquivo de backup.
+        </MudText>
 
-    </MudButton>
-}
+        <MudPaper Class="pa-6 d-flex flex-column align-center gap-4" Outlined="true" Elevation="0">
+            <div class="d-flex align-center justify-center pa-4 rounded-circle" Style="background-color: var(--mud-palette-primary-lighten-5);">
+                <MudIcon Icon="@Icons.Material.Filled.FilePresent" Color="Color.Primary" Style="font-size: 3.5rem;" />
+            </div>
+
+            <MudTextField @bind-Value="Name"
+                          Label="Nome do Arquivo"
+                          Placeholder="escala_backup"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Adornment="Adornment.End"
+                          AdornmentText=".json"
+                          HelperText="Defina um identificador para seu backup"
+                          Disabled="@_isBusy"
+                          FullWidth="true" />
+
+            <MudDivider Class="my-2 width-100" />
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Size="Size.Large"
+                       StartIcon="@Icons.Material.Filled.SaveAlt"
+                       Disabled="@(_isBusy || !_canExecuteSave)"
+                       OnClick="OnClickAsync"
+                       FullWidth="true"
+                       Class="py-3">
+                @if (_isBusy)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <MudText Class="ms-2">Gerando...</MudText>
+                }
+                else
+                {
+                    @:Baixar Backup
+                }
+            </MudButton>
+        </MudPaper>
+    }
+</MudStack>
+
+<style>
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 
 @code {
     [Parameter] public View.ActionTransfer ActionTransfer { get; set; }
     [Parameter] public required IMudDialogInstance MudDialog { get; set; }
-    [Parameter] public Utils.EscalaLocalData? EscalaLocalData { get; set; }
+    [Parameter] public EscalaLocalData? EscalaLocalData { get; set; }
+
+    public string Name { get; set; } = $"escala_backup_{DateTime.Now:yyyyMMdd}";
 
     private IBrowserFile? _file;
     private bool _hasError;
@@ -73,6 +155,29 @@ else if (ActionTransfer == View.ActionTransfer.Save)
     {
         _file = file;
         _hasError = false;
+        if (string.IsNullOrWhiteSpace(Name) || Name.StartsWith("escala_backup_"))
+        {
+            Name = System.IO.Path.GetFileNameWithoutExtension(file.Name);
+        }
+    }
+
+    private void RemoveFile()
+    {
+        _file = null;
+        Name = $"escala_backup_{DateTime.Now:yyyyMMdd}";
+    }
+
+    private string FormatBytes(long bytes)
+    {
+        string[] suffixes = { "B", "KB", "MB", "GB" };
+        int counter = 0;
+        decimal number = (decimal)bytes;
+        while (Math.Round(number / 1024) >= 1)
+        {
+            number = number / 1024;
+            counter++;
+        }
+        return string.Format("{0:n1} {1}", number, suffixes[counter]);
     }
 
     private (bool isValid, string? error) Validate()
@@ -94,9 +199,7 @@ else if (ActionTransfer == View.ActionTransfer.Save)
 
     private async Task OnClickAsync()
     {
-        if (_isBusy)
-            return;
-
+        if (_isBusy) return;
         _isBusy = true;
 
         try
@@ -106,31 +209,38 @@ else if (ActionTransfer == View.ActionTransfer.Save)
             switch (ActionTransfer)
             {
                 case View.ActionTransfer.Load:
-                {
                     var (isValid, error) = Validate();
                     if (!isValid)
                     {
                         Snackbar.Add(error!, Severity.Error);
+                        _isBusy = false;
                         return;
                     }
-
-                    var data = await provider.Import();
+                    var data = await provider.Import(Name);
+                    Snackbar.Add("Dados importados com sucesso!", Severity.Success);
                     MudDialog.Close(DialogResult.Ok(data));
                     break;
-                }
 
                 case View.ActionTransfer.Save:
-                {
                     if (EscalaLocalData is null)
                     {
                         Snackbar.Add("Nenhum dado disponível para exportação.", Severity.Error);
+                        _isBusy = false;
                         return;
                     }
 
-                    var exportResult = await provider.Export(EscalaLocalData);
-                    MudDialog.Close(DialogResult.Ok(exportResult));
+                    var finalName = string.IsNullOrWhiteSpace(Name) ? "escala_backup" : Name;
+                    var exportResult = await provider.Export(finalName, EscalaLocalData);
+                    if (exportResult)
+                    {
+                        Snackbar.Add("Arquivo gerado com sucesso!", Severity.Success);
+                        MudDialog.Close(DialogResult.Ok(exportResult));
+                    }
+                    else
+                    {
+                        Snackbar.Add("Erro ao gerar o arquivo.", Severity.Error);
+                    }
                     break;
-                }
 
                 default:
                     Snackbar.Add("Ação inválida.", Severity.Error);
@@ -140,11 +250,27 @@ else if (ActionTransfer == View.ActionTransfer.Save)
         catch (Exception ex)
         {
             Snackbar.Add($"Erro: {ex.Message}", Severity.Error);
-            Console.Error.WriteLine(ex);
         }
         finally
         {
             _isBusy = false;
+        }
+    }
+
+    private async Task<IEnumerable<string>> SearchCloudResources(string value, CancellationToken token)
+    {
+        if (_file == null) return Array.Empty<string>();
+
+        try
+        {
+            var provider = EscalaDataTransferService.GetBrowserFileProvider(() => _file!);
+            if (string.IsNullOrEmpty(value))
+                return await provider.GetNames();
+            return (await provider.GetNames()).Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+        }
+        catch
+        {
+            return Array.Empty<string>();
         }
     }
 }

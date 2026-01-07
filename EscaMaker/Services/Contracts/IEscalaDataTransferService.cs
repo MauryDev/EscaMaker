@@ -6,6 +6,6 @@ namespace EscaMaker.Services.Contracts
     {
         Utils.EscalaTransfer.IEscalaTransfer GetBrowserFileProvider(Func<IBrowserFile>? file = null);
         Utils.EscalaTransfer.IEscalaTransfer GetLocalStorageProvider();
-        Utils.EscalaTransfer.IEscalaTransfer GetCloudProvider(Func<string> getName);
+        Utils.EscalaTransfer.IEscalaTransfer GetCloudProvider();
     }
 }

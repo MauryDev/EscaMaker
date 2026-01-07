@@ -58,7 +58,7 @@ namespace EscaMaker.Utils
             var (periodosDatas, periodosDatas2) = (escalaInfo.periodoData, escalaInfo2.periodoData);
             var (periodosNomes, periodosNomes2) = (escalaInfo.periodosNomes, escalaInfo2.periodosNomes);
             var (headersEscala, headersEscala2) = (escalaInfo.EscalaInfo.GetHeaders(), escalaInfo2.EscalaInfo.GetHeaders());
-            var (datasEscala, datasEscala2) = (escalaInfo.EscalaInfo.GetDatas(escalaInfo.periodoData), escalaInfo2.EscalaInfo.GetDatas(escalaInfo2.periodoData));
+            var (datasEscala, datasEscala2) = (escalaInfo.periodoData, escalaInfo2.periodoData);
             var headersLen = 2;
 
             var table = new Table(UnitValue.CreatePercentArray(headersLen))
@@ -114,7 +114,6 @@ namespace EscaMaker.Utils
             var periodosDatas = escalaInfoPDF.periodoData;
             var periodosNomes = escalaInfoPDF.periodosNomes;
             var headersEscala = escalaInfo.GetHeaders();
-            var datasEscala = escalaInfo.GetDatas(periodosDatas);
             var headersLen = headersEscala.Count();
 
             var table = new Table(UnitValue.CreatePercentArray(headersLen))
@@ -127,12 +126,12 @@ namespace EscaMaker.Utils
                 table.AddCell(new Cell()
                     .Add(header.CreateHeaderText()));
             }
-            var rowslen = datasEscala.Max(x => x.Count()) * headersLen;
+            var rowslen = periodosDatas.Max(x => x.Count()) * headersLen;
             for (int i = 0; i < rowslen; i++)
                 table.AddCell(new Cell());
 
             var i2 = 0;
-            foreach (var (diasHeader, nameHeader) in datasEscala.Zip(periodosNomes))
+            foreach (var (diasHeader, nameHeader) in periodosDatas.Zip(periodosNomes))
             {
                 var i3 = 2;
                 foreach (var (dia, name) in diasHeader.Zip(nameHeader))
@@ -148,9 +147,9 @@ namespace EscaMaker.Utils
             doc.Add(table);
             doc.NewLine();
         }
-        public static MemoryStream GeneratePDFDocument(int mes, IEnumerable<IEnumerable<byte>> periodosDias, IEnumerable<IEnumerable<IEnumerable<string>>> periodosNomes, IEnumerable<EscalaInfo> escalaInfos)
+        public static MemoryStream? GeneratePDFDocument(int mes,int ano, IEnumerable<IEnumerable<IEnumerable<string>>> periodosNomes, IEnumerable<EscalaInfo> escalaInfos)
         {
-
+            FontStd = null;
             try
             {
                 MemoryStream memoryStream = new();
@@ -169,36 +168,40 @@ namespace EscaMaker.Utils
                 for (int i = 0; i < lenEscalas; i++)
                 {
                     var (escala, curnomes) = escalasInfoPeriodo[i];
-                    if (escala.diasType == EscalaInfo.DiasType.S)
+                    if (escala.GetHeaders().Count() == 1)
                     {
                         if (i + 1 < lenEscalas)
                         {
                             var (nextEscala, nextCurnomes) = escalasInfoPeriodo[i + 1];
-                            if (nextEscala.diasType != EscalaInfo.DiasType.S)
+                            if (nextEscala.GetHeaders().Count() > 1)
                             {
-                                doc.CreateTableEscala(new(escala,periodosDias,curnomes), mes);
-                            } else
+                                doc.CreateTableEscala(new(escala, escala.GetDatas(mes,ano), curnomes), mes);
+                            }
+                            else
                             {
-                                doc.CreateTableEscala2((new(escala, periodosDias, curnomes), new(nextEscala, periodosDias, nextCurnomes)),mes);
+                                doc.CreateTableEscala2((new(escala, escala.GetDatas(mes, ano), curnomes), new(nextEscala, nextEscala.GetDatas(mes,ano), nextCurnomes)), mes);
                                 i++;
                             }
 
                         }
                         else
                         {
-                            doc.CreateTableEscala(new(escala, periodosDias, curnomes), mes);
+                            doc.CreateTableEscala(new(escala, escala.GetDatas(mes, ano), curnomes), mes);
                         }
                     }
                     else
                     {
-                        doc.CreateTableEscala(new(escala, periodosDias, curnomes), mes);
+                        doc.CreateTableEscala(new(escala, escala.GetDatas(mes, ano), curnomes), mes);
 
                     }
                     tablesLen++;
                     if (tablesLen == 4)
+                    {
                         doc.NextPageBreak();
+                        tablesLen = 0;
+                    }
                 }
- 
+
 
                 var footer = new Paragraph();
                 footer.SetFontSize(SizeFont2);
@@ -211,13 +214,14 @@ namespace EscaMaker.Utils
                 doc.Close();
                 memoryStream.Seek(0, SeekOrigin.Begin); // Reset the stream position to the beginning
                 return memoryStream;
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Console.WriteLine(e);
 
                 return null;
             }
-            
+
         }
     }
 }

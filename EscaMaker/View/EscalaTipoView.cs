@@ -1,4 +1,6 @@
-﻿namespace EscaMaker.View
+﻿using MudBlazor;
+
+namespace EscaMaker.View
 {
     public class EscalaTipoView
     {
@@ -24,6 +26,19 @@
                         from nomeEncontrado in nomesEncontrados
                         select (escalaTipoView.Name, nomeEncontrado.Item1, nomeEncontrado.Item2);
             return query.OrderBy(e => e.Item2);
+        }
+
+        public void Clear()
+        {
+            
+            for (int groupIndex = 0; groupIndex < this.Names.Count; groupIndex++)
+            {
+                var group = this.Names[groupIndex];
+                for (int itemIndex = 0; itemIndex < group.Count; itemIndex++)
+                {
+                    group[itemIndex] = string.Empty;
+                }
+            }
         }
     }
 }

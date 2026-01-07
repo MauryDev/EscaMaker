@@ -1,0 +1,293 @@
+﻿@inject IEscalaDataTransferService _escalaDataTransferService
+@inject MudBlazor.IDialogService DialogService
+@inject MudBlazor.ISnackbar Snackbar
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject Services.AdminApiService AdminApiService
+
+@using EscaMaker.Services.Contracts
+@using EscaMaker.Utils.EscalaTransfer
+@using EscaMaker.View
+
+<MudStack Spacing="4" Class="width-100 animate-fade-in">
+    <MudText Typo="Typo.h6" Class="mb-2">
+        @switch (ActionTransfer)
+        {
+            case View.ActionTransfer.Save:
+                @:Exportar para Cloud
+                break;
+            case View.ActionTransfer.Load:
+                @:Importar da Cloud
+                break;
+            case View.ActionTransfer.Delete:
+                @:Deletar da Cloud
+                break;
+        }
+    </MudText>
+
+    <MudText Typo="Typo.body2" Color="Color.Secondary">
+        @switch (ActionTransfer)
+        {
+            case View.ActionTransfer.Save:
+                @:Selecione um recurso na cloud para salvar a escala
+                break;
+            case View.ActionTransfer.Load:
+                @:Selecione um recurso para carregar os dados
+                break;
+            case View.ActionTransfer.Delete:
+                @:Selecione um recurso para remover permanentemente
+                break;
+        }
+    </MudText>
+
+    @if (!AdminApiService.IsAuthenticated)
+    {
+        <MudAlert Severity="Severity.Warning" Dense="true">
+            Autenticação necessária para acessar recursos na cloud.
+        </MudAlert>
+    }
+
+    <MudAutocomplete T="string"
+                     @bind-Value="CloudResourceName"
+                     Label="Cloud Resource"
+                     Placeholder="Ex: my-bucket/escala-2024"
+                     Variant="Variant.Outlined"
+                     Margin="Margin.Dense"
+                     Clearable="true"
+                     Disabled="@(!AdminApiService.IsAuthenticated || _isBusy)"
+                     Adornment="Adornment.End"
+                     AdornmentIcon="@Icons.Material.Filled.Cloud"
+                     AdornmentColor="Color.Primary"
+                     FullWidth="true"
+                     SearchFunc="@SearchCloudResources"
+                     CoerceText="true"
+                     CoerceValue="true" />
+
+    <MudButton Variant="Variant.Filled"
+               Color="@GetButtonColor()"
+               Size="Size.Large"
+               StartIcon="@GetButtonIcon()"
+               Disabled="@(GetIsDisabled())"
+               OnClick="HandleCmd"
+               FullWidth="true"
+               Class="mt-2 py-3">
+        @if (_isBusy)
+        {
+            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+            <MudText Class="ms-2">Processando...</MudText>
+        }
+        else
+        {
+            @GetButtonText()
+        }
+    </MudButton>
+</MudStack>
+
+<style>
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+@code {
+    [Parameter]
+    public IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public EscalaLocalData? EscalaLocalData { get; set; }
+
+    [Parameter]
+    public View.ActionTransfer ActionTransfer { get; set; }
+
+    private string CloudResourceName { get; set; } = string.Empty;
+    private string[]? _cloudResourceNames;
+    private bool _isBusy;
+    private IEscalaTransfer _cloudProvider;
+
+    private Color GetButtonColor() => ActionTransfer == View.ActionTransfer.Delete ? Color.Error : Color.Primary;
+
+    private string GetButtonIcon() => ActionTransfer switch
+    {
+        View.ActionTransfer.Save => Icons.Material.Filled.CloudUpload,
+        View.ActionTransfer.Load => Icons.Material.Filled.CloudDownload,
+        View.ActionTransfer.Delete => Icons.Material.Filled.DeleteForever,
+        _ => Icons.Material.Filled.Check
+    };
+
+    private string GetButtonText() => ActionTransfer switch
+    {
+        View.ActionTransfer.Save => "Exportar",
+        View.ActionTransfer.Load => "Importar",
+        View.ActionTransfer.Delete => "Deletar",
+        _ => "Confirmar"
+    };
+
+    private bool GetIsDisabled() => _isBusy || string.IsNullOrWhiteSpace(CloudResourceName) || !AdminApiService.IsAuthenticated || 
+        (ActionTransfer == View.ActionTransfer.Save && EscalaLocalData == null);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var value = await LocalStorage.GetItemAsStringAsync("authToken");
+        if (value != null)
+        {
+            AdminApiService.LoadAuthToken(value);
+        }
+
+        _cloudProvider = _escalaDataTransferService.GetCloudProvider();
+
+        if (AdminApiService.IsAuthenticated)
+        {
+            _cloudResourceNames = (await _cloudProvider.GetNames()).ToArray();
+        }
+        else
+        {
+            _cloudResourceNames = [];
+        }
+    }
+
+    private async Task<IEnumerable<string>> SearchCloudResources(string value, CancellationToken token)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return _cloudResourceNames ?? Array.Empty<string>();
+        }
+
+        return _cloudResourceNames?.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)) ?? Array.Empty<string>();
+    }
+
+    private async Task HandleCmd()
+    {
+        if (_isBusy) return;
+
+        switch (ActionTransfer)
+        {
+            case View.ActionTransfer.Save:
+                await HandleExport();
+                break;
+            case View.ActionTransfer.Load:
+                await HandleImport();
+                break;
+            case View.ActionTransfer.Delete:
+                await HandleDelete();
+                break;
+        }
+    }
+
+    private async Task HandleExport()
+    {
+        var dialog = await DialogService.ShowMessageBox(
+            "Confirmar Exportação",
+            $"Exportar escala para '{CloudResourceName}'?",
+            "Sim",
+            "Não"
+        );
+
+        if (dialog ?? false)
+        {
+            _isBusy = true;
+            try
+            {
+                var resultado = await _cloudProvider.Export(CloudResourceName, EscalaLocalData);
+                if (resultado)
+                {
+                    Snackbar.Add($"Escala exportada com sucesso para '{CloudResourceName}'.", Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(true));
+                }
+                else
+                {
+                    Snackbar.Add("Erro ao exportar a escala.", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Erro na exportação: {ex.Message}", Severity.Error);
+            }
+            finally
+            {
+                _isBusy = false;
+            }
+        }
+    }
+
+    private async Task HandleImport()
+    {
+        var dialog = await DialogService.ShowMessageBox(
+            "Confirmar Importação",
+            $"Importar dados de '{CloudResourceName}'?",
+            "Sim",
+            "Não"
+        );
+
+        if (dialog ?? false)
+        {
+            _isBusy = true;
+            try
+            {
+                var data = await _cloudProvider.Import(CloudResourceName);
+                if (data == null)
+                {
+                    Snackbar.Add($"Nenhum dado encontrado em '{CloudResourceName}'.", Severity.Warning);
+                    return;
+                }
+
+                Snackbar.Add($"Dados importados com sucesso de '{CloudResourceName}'.", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(data));
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Erro na importação: {ex.Message}", Severity.Error);
+            }
+            finally
+            {
+                _isBusy = false;
+            }
+        }
+    }
+
+    private async Task HandleDelete()
+    {
+        var dialog = await DialogService.ShowMessageBox(
+            "Confirmar Exclusão",
+            $"Deletar permanentemente '{CloudResourceName}' da cloud?",
+            "Sim",
+            "Não"
+        );
+
+        if (dialog ?? false)
+        {
+            _isBusy = true;
+            try
+            {
+                var resultado = await _cloudProvider.Delete(CloudResourceName);
+                if (resultado)
+                {
+                    Snackbar.Add($"'{CloudResourceName}' foi deletado com sucesso.", Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(true));
+                }
+                else
+                {
+                    Snackbar.Add($"Nenhum dado encontrado em '{CloudResourceName}'.", Severity.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Erro ao deletar: {ex.Message}", Severity.Error);
+            }
+            finally
+            {
+                _isBusy = false;
+            }
+        }
+    }
+}

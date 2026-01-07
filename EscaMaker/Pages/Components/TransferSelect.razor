@@ -1,89 +1,199 @@
-﻿<MudDialog>
+﻿@using EscaMaker.View
+
+<MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">Gerenciar Dados</MudText>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.ManageHistory" Class="mr-3 mb-n1" />
+            Gerenciar Dados
+        </MudText>
     </TitleContent>
 
     <DialogContent>
-        <MudStepper @bind-ActiveIndex="ActiveStep" ActionContent="(e) => null">
-            <MudStep Title="Etapa 1" SecondaryText="Modo">
-                <MudSelect T="View.ModeTransfer" @bind-Value="ModeTransfer" Label="Modo de transferência" Dense="true">
-                    <MudSelectItem Value="@View.ModeTransfer.None">
-                        Selecione uma opção
+        <MudStepper @bind-ActiveIndex="ActiveStep" CurrentStepColor="Color.Primary">
 
-                    </MudSelectItem>
-                    <MudSelectItem Value="@View.ModeTransfer.LocalStorage">
-                        <MudIcon Icon="@Icons.Material.Filled.Home" />
-                        <MudText Style="vertical-align: super;" Typo="Typo.caption" Align="Align.Center">LocalStorage</MudText>
-                    </MudSelectItem>
-                    <MudSelectItem Value="@View.ModeTransfer.File">
-                        <MudIcon Icon="@Icons.Material.Filled.FilePresent" />
-                        <MudText Style="vertical-align: super;" Typo="Typo.caption" Align="Align.Center">Arquivo</MudText>
-                    </MudSelectItem>
-                </MudSelect>
+            <!-- ETAPA 1: MODO -->
+            <MudStep Title="Origem" SecondaryText="Onde?">
+                <MudText Align="Align.Center" Class="mb-4">Onde você deseja realizar a operação?</MudText>
 
-                <div class="mt-4">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Next" Disabled="!IsModeSelected">Ok</MudButton>
-                </div>
-            </MudStep>
-
-            <MudStep Title="Etapa 2" SecondaryText="Ação">
-                <MudSelect T="View.ActionTransfer" @bind-Value="ActionTransfer" Label="Ação" Dense="true">
-                    <MudSelectItem Value="@View.ActionTransfer.None">
-                        Selecione uma opção
-
-                    </MudSelectItem>
-                    <MudSelectItem Value="@View.ActionTransfer.Load">
-                        <MudIcon Icon="@Icons.Material.Filled.Download" />
-                        <MudText Style="vertical-align: super;" Typo="Typo.caption" Align="Align.Center">Carregar</MudText>
+                <MudGrid Justify="Justify.Center" Spacing="4">
+                    <!-- Opção: LocalStorage -->
+                    <MudItem xs="12" sm="6">
+                        <div @onclick="@(() => SelectMode(View.ModeTransfer.LocalStorage))">
+                            <MudPaper Elevation="@(ModeTransfer == View.ModeTransfer.LocalStorage ? 12 : 2)"
+                                      Class="@($"pa-6 d-flex flex-column align-center cursor-pointer {(ModeTransfer == View.ModeTransfer.LocalStorage ? "border-solid border-2 border-primary" : "")}")"
+                                      >
+                                <MudIcon Icon="@Icons.Material.Filled.Dns" Color="Color.Primary" Size="Size.Large" Class="mb-3" />
+                                <MudText Typo="Typo.h6">Navegador</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center">LocalStorage</MudText>
+                            </MudPaper>
+                        </div>
                         
-                    </MudSelectItem>
-                    <MudSelectItem Value="@View.ActionTransfer.Save" Disabled="!CanSave">
-                        <MudIcon Icon="@Icons.Material.Filled.Upload"/>
-                        <MudText Style="vertical-align: super;" Typo="Typo.caption" Align="Align.Center">Salvar</MudText>
-                    </MudSelectItem>
-                </MudSelect>
+                    </MudItem>
 
-                <div class="mt-4">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Next" Disabled="!IsActionSelected">Ok</MudButton>
-                </div>
+                    <!-- Opção: Arquivo -->
+                    <MudItem xs="12" sm="6">
+                        <div @onclick="@(() => SelectMode(View.ModeTransfer.File))">
+
+                            <MudPaper Elevation="@(ModeTransfer == View.ModeTransfer.File ? 12 : 2)"
+                                      Class="@($"pa-6 d-flex flex-column align-center cursor-pointer {(ModeTransfer == View.ModeTransfer.File ? "border-solid border-2 border-primary" : "")}")"
+                                      >
+                                <MudIcon Icon="@Icons.Material.Filled.SnippetFolder" Color="Color.Warning" Size="Size.Large" Class="mb-3" />
+                                <MudText Typo="Typo.h6">Arquivo</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center">Upload/Download</MudText>
+                            </MudPaper>
+                        </div>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <div @onclick="@(() => SelectMode(View.ModeTransfer.Cloud))">
+
+                            <MudPaper Elevation="@(ModeTransfer == View.ModeTransfer.Cloud ? 12 : 2)"
+                                      Class="@($"pa-6 d-flex flex-column align-center cursor-pointer {(ModeTransfer == View.ModeTransfer.Cloud ? "border-solid border-2 border-primary" : "")}")">
+                                <MudIcon Icon="@Icons.Material.Filled.Cloud" Color="Color.Warning" Size="Size.Large" Class="mb-3" />
+                                <MudText Typo="Typo.h6">Cloud</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center">Upload/Download</MudText>
+                            </MudPaper>
+                        </div>
+                    </MudItem>
+                </MudGrid>
             </MudStep>
 
-            <MudStep Title="Etapa 3" SecondaryText="Finalização">
-                @switch (ModeTransfer)
-                {
-                    case View.ModeTransfer.LocalStorage:
-                        <EscaMaker.Pages.Components.TransferComponents.LocalStorageFinalize ActionTransfer="ActionTransfer" EscalaLocalData="EscalaLocalData" MudDialog="MudDialog" />
-                        break;
-                    case View.ModeTransfer.File:
-                        <EscaMaker.Pages.Components.TransferComponents.FileFinalize ActionTransfer="ActionTransfer" EscalaLocalData="EscalaLocalData" MudDialog="MudDialog" />
-                        break;
-                    default:
-                        <MudText Color="Color.Secondary">Esse texto não deveria aparecer.</MudText>
-                        break;
-                }
+            <!-- ETAPA 2: AÇÃO -->
+            <MudStep Title="Ação" SecondaryText="O que fazer?">
+                <MudText Align="Align.Center" Class="mb-4">Selecione a operação desejada</MudText>
+
+                <MudGrid Justify="Justify.Center" Spacing="2">
+                    <!-- Carregar -->
+                    <MudItem xs="4">
+                        <div @onclick="@(() => SelectAction(View.ActionTransfer.Load))">
+                            <MudPaper Elevation="@(ActionTransfer == View.ActionTransfer.Load ? 12 : 2)"
+                                      Class="@GetActionClass(View.ActionTransfer.Load)">
+                                <MudIcon Icon="@Icons.Material.Filled.CloudDownload" Size="Size.Large" Class="mb-2" />
+                                <MudText Typo="Typo.button">Carregar</MudText>
+                            </MudPaper>
+                        </div>
+                        
+                    </MudItem>
+
+                    <!-- Salvar -->
+                    <MudItem xs="4">
+                        <div @onclick="@(() => SelectAction(View.ActionTransfer.Save))"> 
+                            <MudPaper Elevation="@(ActionTransfer == View.ActionTransfer.Save ? 12 : 2)"
+                                      Class="@GetActionClass(View.ActionTransfer.Save, !CanSave)"
+                                      >
+                                <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Size="Size.Large" Class="mb-2" Color="@(CanSave? Color.Inherit: Color.Default)" />
+                                <MudText Typo="Typo.button" Color="@(CanSave? Color.Inherit: Color.Default)">Salvar</MudText>
+                            </MudPaper>
+                        </div>
+                        
+                    </MudItem>
+
+                    <!-- Deletar (Desabilitado se for Arquivo) -->
+                    <MudItem xs="4">
+                        <div @onclick="@(() => SelectAction(View.ActionTransfer.Delete))">
+
+                            <MudPaper Elevation="@(ActionTransfer == View.ActionTransfer.Delete ? 12 : 2)"
+                                      Class="@GetActionClass(View.ActionTransfer.Delete, !CanDelete)"
+                                      >
+                                <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Size="Size.Large" Class="mb-2" Color="@(CanDelete? Color.Error: Color.Default)" />
+                                <MudText Typo="Typo.button" Color="@(CanDelete? Color.Error: Color.Default)">Deletar</MudText>
+                            </MudPaper>
+                        </div>
+                    </MudItem>
+                </MudGrid>
+            </MudStep>
+
+            <!-- ETAPA 3: FINALIZAR -->
+            <MudStep Title="Executar" SecondaryText="Finalização">
+                <MudPaper Class="pa-4 mt-4" Outlined="true">
+                    @switch (ModeTransfer)
+                    {
+                        case View.ModeTransfer.LocalStorage:
+                            <EscaMaker.Pages.Components.TransferComponents.LocalStorageFinalize ActionTransfer="ActionTransfer" EscalaLocalData="EscalaLocalData" MudDialog="MudDialog" />
+                            break;
+                        case View.ModeTransfer.File:
+                            <EscaMaker.Pages.Components.TransferComponents.FileFinalize ActionTransfer="ActionTransfer" EscalaLocalData="EscalaLocalData" MudDialog="MudDialog" />
+                            break;
+                        case View.ModeTransfer.Cloud:
+                            <EscaMaker.Pages.Components.TransferComponents.CloudFinalize ActionTransfer="ActionTransfer" EscalaLocalData="EscalaLocalData" MudDialog="MudDialog" />
+                            break;
+                        default:
+                            <MudAlert Severity="Severity.Info">Selecione as opções anteriores para continuar.</MudAlert>
+                            break;
+                    }
+                </MudPaper>
             </MudStep>
         </MudStepper>
     </DialogContent>
 
     <DialogActions>
-        <MudButton OnClick="Cancel">Fechar</MudButton>
+        <!-- Botão Voltar (Opcional, só aparece se não estiver no inicio) -->
+        @if (ActiveStep > 0)
+        {
+            <MudButton OnClick="@(() => ActiveStep--)" Variant="Variant.Text">Voltar</MudButton>
+        }
+        <MudSpacer />
+        <MudButton OnClick="Cancel" Color="Color.Default">Cancelar</MudButton>
     </DialogActions>
 </MudDialog>
 
+<style>
+    /* Pequeno ajuste para borda colorida funcionar bem com MudPaper */
+    .border-2 {
+        border-width: 2px !important;
+    }
+
+    .border-primary {
+        border-color: var(--mud-palette-primary) !important;
+    }
+</style>
+
 @code {
     [CascadingParameter] public required IMudDialogInstance MudDialog { get; set; }
-    [Parameter] public Utils.EscalaLocalData? EscalaLocalData { get; set; }
+    [Parameter] public EscalaLocalData? EscalaLocalData { get; set; }
 
     public int ActiveStep { get; set; }
 
     public View.ActionTransfer ActionTransfer { get; set; } = View.ActionTransfer.None;
     public View.ModeTransfer ModeTransfer { get; set; } = View.ModeTransfer.None;
 
-    bool IsModeSelected => ModeTransfer != View.ModeTransfer.None;
-    bool IsActionSelected => ActionTransfer != View.ActionTransfer.None;
     bool CanSave => EscalaLocalData is not null;
+    bool CanDelete => ModeTransfer != View.ModeTransfer.File;
 
-    void Next() => ActiveStep = Math.Min(ActiveStep + 1, 2);
+    // Métodos Auxiliares para UX
+    private async Task SelectMode(View.ModeTransfer mode)
+    {
+        ModeTransfer = mode;
+        // Limpa ação ao trocar modo para evitar estados inválidos (ex: Deletar em Arquivo)
+        ActionTransfer = View.ActionTransfer.None;
+
+        // Avanço automático suave (opcional)
+        await Task.Delay(200);
+        ActiveStep = 1;
+    }
+
+    private async void SelectAction(View.ActionTransfer action)
+    {
+        if (!CanSave && action == View.ActionTransfer.Save)
+            return;
+
+        if (!CanDelete && action == View.ActionTransfer.Delete)
+            return;
+        ActionTransfer = action;
+        await Task.Delay(200);
+        ActiveStep = 2;
+        
+    }
+
+    private string GetActionClass(View.ActionTransfer action, bool disabled = false)
+    {
+        if (disabled) return "pa-4 d-flex flex-column align-center mud-theme-dark lighten-4 opacity-50 cursor-not-allowed";
+
+        var baseClass = "pa-4 d-flex flex-column align-center cursor-pointer transition-all";
+        if (ActionTransfer == action)
+            return $"{baseClass} border-solid border-2 border-primary mud-theme-primary lighten-5";
+
+        return $"{baseClass} hover:mud-elevation-8";
+    }
 
     void Cancel() => MudDialog.Cancel();
 }

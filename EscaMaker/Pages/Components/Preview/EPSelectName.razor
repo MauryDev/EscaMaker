@@ -1,0 +1,53 @@
+﻿<MudCard Outlined="true" Elevation="4" Class="pa-3">
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">Buscar Escala por Pessoa</MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudAutocomplete Label="Nome"
+                         T="string"
+                         Placeholder="Nome do responsável"
+                         ValueChanged="ChangedText"
+                         Value="Name"
+                         Variant="Variant.Outlined"
+                         FullWidth="true"
+                         Class="mb-4"
+                         CoerceValue="true"
+                         SearchFunc="SearchNames" />
+    </MudCardContent>
+   
+</MudCard>
+
+@code {
+    [Parameter]
+    public EventCallback<string> NameChanged {get;set; }
+    public string Name { get; set; } = string.Empty;
+
+
+    [Parameter]
+    public List<string> Names { get; set; }
+
+    public async Task<IEnumerable<string>> SearchNames(string value,CancellationToken token)
+    {
+        return Names.Where(n => n.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+   
+    public static List<string> GetPersonNomesEscala(IEnumerable<View.EscalaTipoView> escalaTipoView)
+    {
+        var query =
+            from escala in escalaTipoView
+            from listaDeNomes in escala.Names
+            from nome in listaDeNomes
+            where !string.IsNullOrWhiteSpace(nome)
+            select nome;
+        var namesList = query
+            .Distinct()
+            .ToList();
+
+        return namesList;
+    }
+    async Task ChangedText(string text)
+    {
+        Name = text;
+        await NameChanged.InvokeAsync(text);
+    }
+}

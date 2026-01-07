@@ -6,30 +6,77 @@
 @using EscaMaker.Services
 @using EscaMaker.Utils
 
-<MudForm  @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
-    <MudTextField @bind-Value="Username"
-                  Label="Username"
-                  Required="true"
-                  RequiredError="Username is required!"
-                  Variant="Variant.Text"
-                  Margin="Margin.Dense" />
-    <MudTextField @bind-Value="Password"
-                  Label="Password"
-                  InputType="InputType.Password"
-                  Required="true"
-                  RequiredError="Password is required!"
-                  Variant="Variant.Text"
-                  Margin="Margin.Dense" />
+@if (_adminAPIService.IsAuthenticated)
+{
+    <MudPaper Class="p-5 d-flex flex-column align-items-center shadow-sm">
+        <MudText Typo="Typo.h5" Class="mb-4">Session Active</MudText>
 
-    @if (!string.IsNullOrEmpty(ErrorMessage))
-    {
-        <MudAlert Severity="Severity.Error" Class="my-4">@ErrorMessage</MudAlert>
-    }
+        <MudImage Src="img/auth-success.png" Alt="Authenticated" Width="120" Height="120" Class="mb-2 rounded-circle shadow" />
+        
 
-    <div class="d-flex align-items-center justify-content-end mt-4">
-        <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleLogin">Login</MudButton>
-    </div>
-</MudForm>
+        <div class="d-flex w-100 justify-content-center">
+            <MudButton Variant="Variant.Filled" 
+                       Color="Color.Error" 
+                       Size="Size.Large" 
+                       OnClick="HandleLogout" 
+                       StartIcon="@Icons.Material.Filled.Logout"
+                       Class="px-8">
+                Logout
+            </MudButton>
+        </div>
+    </MudPaper>
+}
+else
+{
+    <MudPaper Class="p-8 d-flex flex-column shadow-sm">
+        @if (_isProcessing)
+        {
+            <div class="d-flex flex-column align-items-center justify-content-center my-8">
+                <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.subtitle1" Class="mt-4">Authenticating...</MudText>
+            </div>
+        }
+        else
+        {
+            <MudText Typo="Typo.h5" Class="mb-4">Admin Login</MudText>
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+                <MudTextField @bind-Value="Username"
+                              Label="Username"
+                              Required="true"
+                              RequiredError="Username is required!"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Person"
+                              Margin="Margin.Dense"
+                              Class="mb-4" />
+                <MudTextField @bind-Value="Password"
+                              Label="Password"
+                              InputType="InputType.Password"
+                              Required="true"
+                              RequiredError="Password is required!"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Lock"
+                              Margin="Margin.Dense" />
+
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Class="my-4" Variant="Variant.Filled">@ErrorMessage</MudAlert>
+                }
+
+                <div class="d-flex align-items-center justify-content-end mt-6">
+                    <MudButton ButtonType="ButtonType.Button" 
+                               Variant="Variant.Filled" 
+                               Color="Color.Primary" 
+                               Size="Size.Large"
+                               FullWidth="true"
+                               OnClick="HandleLogin">Login</MudButton>
+                </div>
+            </MudForm>
+        }
+    </MudPaper>
+}
+
 
 @code {
 
@@ -40,6 +87,20 @@
     private string Username { get; set; } = string.Empty;
     private string Password { get; set; } = string.Empty;
     private string ErrorMessage { get; set; } = string.Empty;
+    private bool _isProcessing;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await _adminAPIService.LoadAuthToken(localStorage);
+
+        StateHasChanged();
+    }
+
+    private async Task HandleLogout()
+    {
+        await _adminAPIService.Logout(localStorage);
+        NavigationManager.NavigateTo("/");
+    }
 
     private async Task HandleLogin()
     {
@@ -48,11 +109,7 @@
 
         if (success) 
         {
-            var request = new View.Login
-            {
-                user = Username,
-                password = Password
-            };
+            _isProcessing = true;
 
             try
             {
@@ -66,13 +123,14 @@
                 else
                 {
                     ErrorMessage = errorMsg!;
+                    _isProcessing = false;
                 }
             }
             catch (Exception ex)
             {
-                // Handle potential exceptions during the API call
                 Console.WriteLine($"Login error: {ex.Message}");
                 ErrorMessage = "An unexpected error occurred during login. Please try again.";
+                _isProcessing = false;
             }
         }
     }

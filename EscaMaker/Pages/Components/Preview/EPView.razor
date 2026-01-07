@@ -1,0 +1,84 @@
+﻿@using ClipLazor.Components;
+@inject IClipLazor Clipboard
+@inject ISnackbar _snackbar
+@inject Services.EscalaPessoaPdf escalaPessoaPdf
+@inject Services.PDFEscala pDFEscala
+
+
+<MudCard Outlined="true" Elevation="4" Class="pa-3">
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">Escala Individual</MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.subtitle1">Mês de @MesNome</MudText>
+        <MudText Typo="Typo.subtitle1" Class="mb-4"><b>Nome</b>: @Nome</MudText>
+        @if (DiasAndFuncao != null && DiasAndFuncao.Any())
+        {
+
+            <MudTable Items="@DiasAndFuncao" Dense="true" Hover="true" Bordered="false" Striped="true">
+                <HeaderContent>
+                    <MudTh Style="width: 50px">Dia</MudTh>
+                    <MudTh>Função</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Dia">@context.Dia.ToString("D02")</MudTd>
+                    <MudTd DataLabel="Função">@context.Name</MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+        else
+        {
+            <MudText Class="mt-4">Nenhuma escala encontrada para esta pessoa neste mês.</MudText> @* Mensagem para quando não há dados *@
+        }
+    </MudCardContent>
+    <MudCardActions Class="d-flex justify-end">
+        <MudButton Disabled="@Disabled" OnClick="SaveToPDFAsync" Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Custom.FileFormats.FilePdf">Salvar (PDF)</MudButton> @* Botão "Copiar" com ícone e cor secundária *@
+    </MudCardActions>
+</MudCard>
+
+
+@code {
+
+    [Parameter]
+    public string? Nome { get; set; }
+    [Parameter]
+    public int Mes { get; set; }
+    [Parameter]
+    public int Ano { get; set; }
+    [Parameter]
+    public bool Disabled { get; set; }
+    public string? MesNome => Utils.DateTimeUtil.GetMesNome(Mes);
+
+    [Parameter]
+    public IEnumerable<(string? Name, byte Dia, string PersonName)>? DiasAndFuncao { get; set; }
+    
+    async Task SaveToPDFAsync()
+    {
+        try
+        {
+            if (DiasAndFuncao == null || Nome == null)
+                return;
+
+            var dict = (from e in DiasAndFuncao
+                        group e by e.Dia into g
+                        select new
+                        {
+                            DayKey = g.Key,
+                            Names = g.Select(e => e.Name)
+                        })
+                .ToDictionary(
+                    item => new DateOnly(Ano, Mes, item.DayKey),
+                    item => item.Names
+                );
+
+            using var streamSource = escalaPessoaPdf.GeneratePDF(Nome!, Mes, dict!);
+            await pDFEscala.GeneratePDF(streamSource, "escala-pessoa.pdf");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Clipboard Error: {ex}");
+        }
+    }
+
+
+}
