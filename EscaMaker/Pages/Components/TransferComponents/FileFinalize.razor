@@ -1,5 +1,4 @@
 ﻿@using EscaMaker.View
-@inject Services.Contracts.IEscalaDataTransferService EscalaDataTransferService
 @inject ISnackbar Snackbar
 
 <MudStack Spacing="4" Class="width-100 animate-fade-in">
@@ -137,10 +136,14 @@
     }
 </style>
 
-@code {
+@code 
+    {
+    [Inject(Key = ModeTransfer.File)]
+    public Services.ScheduleTransfer.IScheduleTransfer BrowserFileStorageTransfer { get; set; } = null!;
+
     [Parameter] public View.ActionTransfer ActionTransfer { get; set; }
     [Parameter] public required IMudDialogInstance MudDialog { get; set; }
-    [Parameter] public LocalScheduleData? EscalaLocalData { get; set; }
+    [Parameter] public LocalScheduleData? ScheduleLocalData { get; set; }
 
     public string Name { get; set; } = $"escala_backup_{DateTime.Now:yyyyMMdd}";
 
@@ -149,10 +152,12 @@
     private bool _isBusy;
 
     private bool _canExecuteLoad => _file is not null;
-    private bool _canExecuteSave => EscalaLocalData is not null;
+    private bool _canExecuteSave => ScheduleLocalData is not null;
 
     private void OnFileUpload(IBrowserFile file)
     {
+        var browser = (Services.ScheduleTransfer.IScheduleBrowserConfig)BrowserFileStorageTransfer;
+        browser.BrowserFile = file;
         _file = file;
         _hasError = false;
         if (string.IsNullOrWhiteSpace(Name) || Name.StartsWith("escala_backup_"))
@@ -204,7 +209,6 @@
 
         try
         {
-            var provider = EscalaDataTransferService.GetBrowserFileProvider(() => _file!);
 
             switch (ActionTransfer)
             {
@@ -216,13 +220,13 @@
                         _isBusy = false;
                         return;
                     }
-                    var data = await provider.Import(Name);
+                    var data = await BrowserFileStorageTransfer.Import(Name);
                     Snackbar.Add("Dados importados com sucesso!", Severity.Success);
                     MudDialog.Close(DialogResult.Ok(data));
                     break;
 
                 case View.ActionTransfer.Save:
-                    if (EscalaLocalData is null)
+                    if (ScheduleLocalData is null)
                     {
                         Snackbar.Add("Nenhum dado disponível para exportação.", Severity.Error);
                         _isBusy = false;
@@ -230,7 +234,7 @@
                     }
 
                     var finalName = string.IsNullOrWhiteSpace(Name) ? "escala_backup" : Name;
-                    var exportResult = await provider.Export(finalName, EscalaLocalData);
+                    var exportResult = await BrowserFileStorageTransfer.Export(finalName, ScheduleLocalData);
                     if (exportResult)
                     {
                         Snackbar.Add("Arquivo gerado com sucesso!", Severity.Success);
@@ -263,10 +267,10 @@
 
         try
         {
-            var provider = EscalaDataTransferService.GetBrowserFileProvider(() => _file!);
+            var names = await BrowserFileStorageTransfer.GetNames();
             if (string.IsNullOrEmpty(value))
-                return await provider.GetNames();
-            return (await provider.GetNames()).Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+                return names;
+            return names.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
         }
         catch
         {

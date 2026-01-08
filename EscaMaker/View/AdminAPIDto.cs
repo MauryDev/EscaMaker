@@ -24,6 +24,10 @@ public record DeleteBody(
     [property: JsonPropertyName("Nome")] string Nome
 );
 
+public record SaveScheduleBody(
+    [property: JsonPropertyName("success")] bool success
+);
+
 public record GetAllNamesResponseDTO(
     [property: JsonPropertyName("Nomes")] string[] Nomes
 );

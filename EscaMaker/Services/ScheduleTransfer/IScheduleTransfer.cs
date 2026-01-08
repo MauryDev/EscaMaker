@@ -1,6 +1,6 @@
 ﻿using EscaMaker.View;
 
-namespace EscaMaker.Utils.EscalaTransfer
+namespace EscaMaker.Services.ScheduleTransfer
 {
     public interface IScheduleTransfer
     {

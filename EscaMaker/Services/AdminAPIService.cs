@@ -21,11 +21,7 @@ public class AdminApiService(HttpClient httpClient)
 
         var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
-            Content = JsonContent.Create(loginInfo),
-            Headers =
-            {
-                {"X-Auth-Token", _authToken }
-            }
+            Content = JsonContent.Create(loginInfo)
         };
 
         var response = await _httpClient.SendAsync(request);
@@ -81,7 +77,7 @@ public class AdminApiService(HttpClient httpClient)
 
         return response;
     }
-    public async Task<ApiResponse?> SaveAsync(EscaMakerInfo info)
+    public async Task<SaveScheduleBody?> SaveAsync(EscaMakerInfo info)
     {
         try
         {
@@ -102,7 +98,7 @@ public class AdminApiService(HttpClient httpClient)
 
             response.EnsureSuccessStatusCode();
 
-            return await response.Content.ReadFromJsonAsync<ApiResponse>();
+            return await response.Content.ReadFromJsonAsync<SaveScheduleBody>();
         } catch(Exception ex)
         {
             Console.WriteLine(ex);

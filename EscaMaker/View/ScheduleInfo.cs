@@ -68,7 +68,6 @@ public class ScheduleInfo
     public static ScheduleInfo[]? LoadFromResource()
     {
         var escalaInfos = Resources.Resource.escalaInfos;
-        Console.WriteLine(escalaInfos);
         return JsonSerializer.Deserialize<ScheduleInfo[]>(escalaInfos, JsonEnumString.GetOptions());
 
     }

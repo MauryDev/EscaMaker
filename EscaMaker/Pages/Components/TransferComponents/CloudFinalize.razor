@@ -1,11 +1,9 @@
-﻿@inject IEscalaDataTransferService _escalaDataTransferService
-@inject MudBlazor.IDialogService DialogService
+﻿@inject MudBlazor.IDialogService DialogService
 @inject MudBlazor.ISnackbar Snackbar
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject Services.AdminApiService AdminApiService
 
-@using EscaMaker.Services.Contracts
-@using EscaMaker.Utils.EscalaTransfer
+@using EscaMaker.Services.ScheduleTransfer
 @using EscaMaker.View
 
 <MudStack Spacing="4" Class="width-100 animate-fade-in">
@@ -101,11 +99,15 @@
 </style>
 
 @code {
+
+    [Inject(Key = ModeTransfer.Cloud)]
+    public Services.ScheduleTransfer.IScheduleTransfer CloudStorageTransfer { get; set; } = null!;
+
     [Parameter]
     public IMudDialogInstance MudDialog { get; set; }
 
     [Parameter]
-    public LocalScheduleData? EscalaLocalData { get; set; }
+    public LocalScheduleData? ScheduleLocalData { get; set; }
 
     [Parameter]
     public View.ActionTransfer ActionTransfer { get; set; }
@@ -113,7 +115,6 @@
     private string CloudResourceName { get; set; } = string.Empty;
     private string[]? _cloudResourceNames;
     private bool _isBusy;
-    private IScheduleTransfer _cloudProvider { get; set; } = null!;
 
     private Color GetButtonColor() => ActionTransfer == View.ActionTransfer.Delete ? Color.Error : Color.Primary;
 
@@ -134,34 +135,24 @@
     };
 
     private bool GetIsDisabled() => _isBusy || string.IsNullOrWhiteSpace(CloudResourceName) || !AdminApiService.IsAuthenticated || 
-        (ActionTransfer == View.ActionTransfer.Save && EscalaLocalData == null);
+        (ActionTransfer == View.ActionTransfer.Save && ScheduleLocalData == null);
 
     protected override async Task OnInitializedAsync()
     {
         var value = await LocalStorage.GetItemAsStringAsync("authToken");
         if (value != null)
-        {
             AdminApiService.LoadAuthToken(value);
-        }
-
-        _cloudProvider = _escalaDataTransferService.GetCloudProvider();
 
         if (AdminApiService.IsAuthenticated)
-        {
-            _cloudResourceNames = (await _cloudProvider.GetNames()).ToArray();
-        }
+            _cloudResourceNames = (await CloudStorageTransfer.GetNames()).ToArray();
         else
-        {
             _cloudResourceNames = [];
-        }
     }
 
     private async Task<IEnumerable<string>> SearchCloudResources(string value, CancellationToken token)
     {
         if (string.IsNullOrEmpty(value))
-        {
             return _cloudResourceNames ?? Array.Empty<string>();
-        }
 
         return _cloudResourceNames?.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)) ?? Array.Empty<string>();
     }
@@ -198,7 +189,7 @@
             _isBusy = true;
             try
             {
-                var resultado = await _cloudProvider.Export(CloudResourceName, EscalaLocalData);
+                var resultado = await CloudStorageTransfer.Export(CloudResourceName, ScheduleLocalData);
                 if (resultado)
                 {
                     Snackbar.Add($"Escala exportada com sucesso para '{CloudResourceName}'.", Severity.Success);
@@ -234,7 +225,7 @@
             _isBusy = true;
             try
             {
-                var data = await _cloudProvider.Import(CloudResourceName);
+                var data = await CloudStorageTransfer.Import(CloudResourceName);
                 if (data == null)
                 {
                     Snackbar.Add($"Nenhum dado encontrado em '{CloudResourceName}'.", Severity.Warning);
@@ -269,7 +260,7 @@
             _isBusy = true;
             try
             {
-                var resultado = await _cloudProvider.Delete(CloudResourceName);
+                var resultado = await CloudStorageTransfer.Delete(CloudResourceName);
                 if (resultado)
                 {
                     Snackbar.Add($"'{CloudResourceName}' foi deletado com sucesso.", Severity.Success);

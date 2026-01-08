@@ -2,7 +2,7 @@
 using Blazored.LocalStorage;
 using EscaMaker.View;
 
-namespace EscaMaker.Utils.EscalaTransfer
+namespace EscaMaker.Services.ScheduleTransfer
 {
     public class ScheduleLocalStorageActions : IScheduleTransfer
     {

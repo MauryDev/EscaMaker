@@ -1,5 +1,4 @@
 ﻿@using EscaMaker.View
-@inject Services.Contracts.IEscalaDataTransferService EscalaDataTransferService
 @inject ISnackbar Snackbar
 
 <MudStack Spacing="4" Class="width-100 animate-fade-in">
@@ -91,9 +90,11 @@
 </style>
 
 @code {
+    [Inject(Key = ModeTransfer.LocalStorage)]
+    public Services.ScheduleTransfer.IScheduleTransfer LocalStorageTransfer { get; set; } = null!;
     [Parameter] public View.ActionTransfer ActionTransfer { get; set; }
     [Parameter] public required IMudDialogInstance MudDialog { get; set; }
-    [Parameter] public LocalScheduleData? EscalaLocalData { get; set; }
+    [Parameter] public LocalScheduleData? ScheduleLocalData { get; set; }
 
     public string Name { get; set; } = string.Empty;
     private bool _isBusy;
@@ -138,12 +139,12 @@
         _isBusy = true;
         try
         {
-            var provider = EscalaDataTransferService.GetLocalStorageProvider();
+            var provider = LocalStorageTransfer;
 
             switch (ActionTransfer)
             {
                 case View.ActionTransfer.Load:
-                    var importedData = await provider.Import(Name);
+                    var importedData = await LocalStorageTransfer.Import(Name);
                     if (importedData != null)
                     {
                         Snackbar.Add("Dados carregados com sucesso!", Severity.Success);
@@ -156,9 +157,9 @@
                     break;
 
                 case View.ActionTransfer.Save:
-                    if (EscalaLocalData != null)
+                    if (ScheduleLocalData != null)
                     {
-                        var result = await provider.Export(Name, EscalaLocalData);
+                        var result = await LocalStorageTransfer.Export(Name, ScheduleLocalData);
                         if (result)
                         {
                             Snackbar.Add("Dados salvos com sucesso!", Severity.Success);
@@ -172,7 +173,7 @@
                     break;
 
                 case View.ActionTransfer.Delete:
-                    var deleteResult = await provider.Delete(Name);
+                    var deleteResult = await LocalStorageTransfer.Delete(Name);
                     if (deleteResult)
                     {
                         Snackbar.Add($"Item '{Name}' removido.", Severity.Success);
@@ -199,8 +200,7 @@
     {
         try
         {
-            var provider = EscalaDataTransferService.GetLocalStorageProvider();
-            var names = await provider.GetNames();
+            var names = await LocalStorageTransfer.GetNames();
 
             if (string.IsNullOrEmpty(value))
                 return names;

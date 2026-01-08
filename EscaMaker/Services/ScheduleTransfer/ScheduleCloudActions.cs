@@ -3,7 +3,7 @@ using EscaMaker.Services;
 using EscaMaker.View;
 using System.Text.Json;
 
-namespace EscaMaker.Utils.EscalaTransfer
+namespace EscaMaker.Services.ScheduleTransfer
 {
     public class ScheduleCloudActions : IScheduleTransfer
     {
@@ -25,7 +25,7 @@ namespace EscaMaker.Utils.EscalaTransfer
             try
             {
                 var resultado = await AdminApiService.SaveAsync(Escamakerinfo);
-                return resultado != null;
+                return resultado != null && resultado.success;
             } catch
             {
                 return false;

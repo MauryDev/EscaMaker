@@ -2,14 +2,15 @@
 using EscaMaker.View;
 using Microsoft.AspNetCore.Components.Forms;
 
-namespace EscaMaker.Utils.EscalaTransfer
+namespace EscaMaker.Services.ScheduleTransfer
 {
-    public class ScheduleBrowserFileActions : IScheduleTransfer
+    public class ScheduleBrowserFileActions : IScheduleTransfer, IScheduleBrowserConfig
     {
-        public Func<IBrowserFile>? GetFile { get; set; }
         JsonExport? JsonExport { get; set; }
 
         bool IScheduleTransfer.CanDelete => false;
+        IBrowserFile? browserFile { get; set; }
+        IBrowserFile? IScheduleBrowserConfig.BrowserFile { set => browserFile = value; }
 
         public ScheduleBrowserFileActions(JsonExport jsonExport)
         {
@@ -39,10 +40,10 @@ namespace EscaMaker.Utils.EscalaTransfer
 
         async Task<LocalScheduleData?> IScheduleTransfer.Import(string nameId)
         {
-            if (GetFile == null)
+            if (browserFile == null)
                 return null;
 
-            using var stream = GetFile().OpenReadStream(1024 * 10);
+            using var stream = browserFile.OpenReadStream(1024 * 10);
             using StreamReader reader = new(stream);
             var txt = await reader.ReadToEndAsync();
             var escalas = System.Text.Json.JsonSerializer.Deserialize<SchedulesData>(txt);
@@ -54,9 +55,9 @@ namespace EscaMaker.Utils.EscalaTransfer
 
         async Task<IEnumerable<string>> IScheduleTransfer.GetNames()
         {
-            if (GetFile == null)
+            if (browserFile == null)
                 return [];
-            using var stream = GetFile().OpenReadStream(1024 * 10);
+            using var stream = browserFile.OpenReadStream(1024 * 10);
             using StreamReader reader = new(stream);
             var txt = await reader.ReadToEndAsync();
             var escalas = System.Text.Json.JsonSerializer.Deserialize<SchedulesData>(txt);
@@ -68,7 +69,7 @@ namespace EscaMaker.Utils.EscalaTransfer
 
         Task<bool> IScheduleTransfer.Delete(string name)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
     }
 }
