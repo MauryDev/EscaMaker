@@ -1,60 +1,189 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EscaMaker</title>
     <base href="/" />
-    <link rel="stylesheet" href="css/app.css" />
+
+    <!-- Fontes e Estilos Externos -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
-    <!-- Important: Increment the version parameter whenever you update MudBlazor to prevent caching issues -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link href="_content/MudBlazor/MudBlazor.min.css?v=1" rel="stylesheet" />
-    <!-- If you add any scoped CSS files, uncomment the following to load them
-    <link href="EscaMaker.styles.css" rel="stylesheet" /> -->
+    <link href="css/app.css" rel="stylesheet" />
+
+    <!-- PWA e Ícones -->
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" href="/img/logo.png">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa; /* Fundo cinza bem claro */
+        }
 
+        #app {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100%;
+            position: relative;
+        }
+
+        .splash-content {
+            text-align: center;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        .brand-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+            /* Se não houver imagem carregada, usa um placeholder */
+            background-image: url('/img/logo.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .brand-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #594AE2; /* Cor padrão do MudBlazor ou altere para sua marca */
+            margin: 0;
+            letter-spacing: -0.5px;
+            margin-bottom: 2rem;
+        }
+
+        .loading-progress {
+            position: relative;
+            display: block;
+            width: 5rem; 
+            height: 5rem; 
+            margin: 0 auto;
+        }
+
+            .loading-progress circle {
+                fill: none;
+                stroke-width: 0.4rem; 
+                stroke-linecap: round;
+                transform-origin: 50% 50%;
+            }
+
+                .loading-progress circle:first-child {
+                    stroke: #e0e0e0; 
+                }
+
+                .loading-progress circle:last-child {
+                    stroke: #594AE2; 
+                    stroke-dasharray: 60 180; 
+                    animation: spinner-rotate 1.4s linear infinite;
+                }
+
+        .loading-progress-text {
+            margin-top: 1.5rem;
+            font-size: 1rem;
+            color: #6c757d;
+            font-weight: 500;
+            position: relative;
+            text-align: center;
+        }
+
+        @keyframes spinner-rotate {
+            0% {
+                transform: rotate(0deg);
+                stroke-dasharray: 60 180;
+                stroke-dashoffset: 0;
+            }
+
+            50% {
+                transform: rotate(180deg);
+                stroke-dasharray: 120 120;
+                stroke-dashoffset: -40;
+            }
+
+            100% {
+                transform: rotate(360deg);
+                stroke-dasharray: 60 180;
+                stroke-dashoffset: -200;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #blazor-error-ui {
+            background: lightyellow;
+            bottom: 0;
+            box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+            display: none;
+            left: 0;
+            padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+        }
+
+            #blazor-error-ui .dismiss {
+                cursor: pointer;
+                position: absolute;
+                right: 0.75rem;
+                top: 0.5rem;
+            }
+    </style>
 </head>
 
 <body>
     <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
+        <div class="splash-content">
+            <!-- <img src="/img/logo.png" alt="Logo" style="width: 80px; margin-bottom: 20px;" /> -->
+
+            <h1 class="brand-title">EscaMaker</h1>
+
+            <svg class="loading-progress" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" />
+                <circle cx="50" cy="50" r="40" />
+            </svg>
+
+            <div class="loading-progress-text">Iniciando aplicação...</div>
+        </div>
     </div>
 
     <div id="blazor-error-ui">
-        An unhandled error has occurred.
-        <a href="." class="reload">Reload</a>
+        Ocorreu um erro inesperado.
+        <a href="." class="reload">Recarregar</a>
         <span class="dismiss">🗙</span>
     </div>
+
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js?v=1"></script>
     <script src="_content/ClipLazor/clipboard.min.js"></script>
 
     <script type="text/javascript">
-
         (function (l) {
             const queryString = l.search;
             if (queryString) {
                 const searchParams = new URLSearchParams(queryString);
-                p = searchParams.get("p")
+                const p = searchParams.get("p");
                 if (p) {
-
-                    window.history.replaceState(null, null, p)
+                    window.history.replaceState(null, null, p);
                 }
-
             }
-
-        }(window.location))
-
-
+        }(window.location));
     </script>
-
 </body>
 
 </html>
